@@ -1,0 +1,4 @@
+REQUIREMENTS
+
+torch 
+trasformers
