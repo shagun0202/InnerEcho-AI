@@ -1,4 +1,6 @@
 REQUIREMENTS
-
-torch 
-trasformers
+fastapi
+uvicorn[standard]
+torch
+transformers
+pydantic
