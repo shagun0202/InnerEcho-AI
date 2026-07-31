@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InnerEcho-AI — Emotion Detection</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: #0f1115;
+    color: #e8e8e8;
+    display: flex;
+    justify-content: center;
+    padding: 40px 16px;
+    margin: 0;
+  }
+  .card {
+    width: 100%;
+    max-width: 560px;
+    background: #181b21;
+    border: 1px solid #262a33;
+    border-radius: 12px;
+    padding: 28px;
+  }
+  h1 { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+  p.sub { color: #9a9ea6; font-size: 14px; margin: 0 0 20px; }
+  textarea {
+    width: 100%;
+    min-height: 110px;
+    background: #0f1115;
+    border: 1px solid #2c313b;
+    border-radius: 8px;
+    color: #e8e8e8;
+    padding: 12px;
+    font-size: 14px;
+    resize: vertical;
+    font-family: inherit;
+  }
+  button {
+    margin-top: 12px;
+    background: #4f7cff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  button:disabled { opacity: 0.6; cursor: default; }
+  #result { margin-top: 24px; display: none; }
+  .top-emotion { font-size: 18px; font-weight: 600; text-transform: capitalize; }
+  .top-confidence { color: #9a9ea6; font-size: 13px; margin-bottom: 16px; }
+  .score-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+  .score-label { width: 80px; font-size: 13px; text-transform: capitalize; color: #c7cad1; }
+  .score-track { flex: 1; background: #0f1115; border-radius: 6px; height: 10px; overflow: hidden; }
+  .score-fill { height: 100%; background: #4f7cff; }
+  .score-pct { width: 46px; text-align: right; font-size: 12px; color: #9a9ea6; }
+  #error { color: #ff6b6b; font-size: 13px; margin-top: 12px; display: none; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>InnerEcho-AI</h1>
+    <p class="sub">Emotion detection from text</p>
+
+    <textarea id="text-input" placeholder="Type how you're feeling..."></textarea>
+    <br>
+    <button id="analyze-btn">Analyze</button>
+    <div id="error"></div>
+
+    <div id="result">
+      <div class="top-emotion" id="top-emotion"></div>
+      <div class="top-confidence" id="top-confidence"></div>
+      <div id="score-list"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "http://localhost:8000/predict";
+
+    const btn = document.getElementById("analyze-btn");
+    const input = document.getElementById("text-input");
+    const resultBox = document.getElementById("result");
+    const errorBox = document.getElementById("error");
+    const topEmotionEl = document.getElementById("top-emotion");
+    const topConfidenceEl = document.getElementById("top-confidence");
+    const scoreListEl = document.getElementById("score-list");
+
+    btn.addEventListener("click", async () => {
+      const text = input.value.trim();
+      errorBox.style.display = "none";
+      if (!text) {
+        errorBox.textContent = "Please enter some text.";
+        errorBox.style.display = "block";
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Analyzing...";
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        });
+
+        if (!res.ok) throw new Error("Request failed: " + res.status);
+        const data = await res.json();
+        renderResult(data);
+      } catch (err) {
+        errorBox.textContent = "Could not reach the backend. Is it running on localhost:8000?";
+        errorBox.style.display = "block";
+        resultBox.style.display = "none";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Analyze";
+      }
+    });
+
+    function renderResult(data) {
+      topEmotionEl.textContent = data.emotion;
+      topConfidenceEl.textContent = `${data.confidence}% confidence`;
+
+      scoreListEl.innerHTML = "";
+      const sorted = [...data.all_predictions].sort((a, b) => b.score - a.score);
+      for (const item of sorted) {
+        const pct = (item.score * 100).toFixed(1);
+        const row = document.createElement("div");
+        row.className = "score-row";
+        row.innerHTML = `
+          <div class="score-label">${item.label}</div>
+          <div class="score-track"><div class="score-fill" style="width:${pct}%"></div></div>
+          <div class="score-pct">${pct}%</div>
+        `;
+        scoreListEl.appendChild(row);
+      }
+
+      resultBox.style.display = "block";
+    }
+  </script>
+</body>
+</html>
