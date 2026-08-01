@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MoodMentor 🧠💚</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:"Segoe UI",system-ui,-apple-system,sans-serif; }
+  body { min-height:100vh; background:linear-gradient(135deg,#a8edea 0%,#c3b2f7 50%,#fed6e3 100%); display:flex; justify-content:center; padding:28px 14px; }
+  .app { width:100%; max-width:760px; }
+  .hidden { display:none !important; }
+  .header { text-align:center; color:#3b3663; margin-bottom:22px; }
+  .header h1 { font-size:2.1rem; }
+  .header p { opacity:.75; margin-top:4px; }
+  .card { background:rgba(255,255,255,.9); backdrop-filter:blur(10px); border-radius:20px; padding:24px; box-shadow:0 18px 45px rgba(80,60,150,.22); margin-bottom:18px; }
+  .tabs { display:flex; gap:8px; margin-bottom:16px; }
+  .tabs button { flex:1; padding:10px; border:none; border-radius:12px; cursor:pointer; background:#eee9fb; color:#5b5480; font-weight:600; transition:.2s; }
+  .tabs button.active { background:#7c6cf0; color:#fff; }
+  input, textarea { width:100%; padding:12px 14px; margin-bottom:12px; border:2px solid #e4def5; border-radius:12px; font-size:1rem; outline:none; transition:.2s; background:#fbfaff; }
+  input:focus, textarea:focus { border-color:#7c6cf0; }
+  textarea { min-height:120px; resize:vertical; line-height:1.5; }
+  .btn { width:100%; padding:13px; border:none; border-radius:12px; cursor:pointer; background:linear-gradient(135deg,#7c6cf0,#a86cf0); color:#fff; font-size:1.02rem; font-weight:700; transition:.2s; }
+  .btn:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(124,108,240,.4); }
+  .btn:disabled { opacity:.6; cursor:wait; transform:none; }
+  .error { background:#ffe5e5; color:#c0392b; padding:10px 14px; border-radius:10px; margin-bottom:12px; font-size:.9rem; display:none; }
+  .link-btn { background:none; border:none; color:#7c6cf0; cursor:pointer; font-weight:600; }
+  .demo-link { display:block; text-align:center; margin-top:10px; }
+  /* ── nav ── */
+  .nav { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
+  .nav .views { display:flex; gap:8px; }
+  .nav .views button { padding:9px 18px; border:none; border-radius:99px; cursor:pointer; background:rgba(255,255,255,.7); color:#5b5480; font-weight:700; transition:.2s; }
+  .nav .views button.active { background:#7c6cf0; color:#fff; }
+  .nav .who { color:#3b3663; font-size:.95rem; }
+  /* ── live emotion meter ⚡ ── */
+  .live-meter { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:-4px 0 12px; font-size:.82rem; }
+  .lm-title { color:#8a84a8; font-weight:700; }
+  .lm-chip { border:1.5px solid; border-radius:99px; padding:3px 10px; background:#fff; color:#5b5480; animation:pop .3s ease; }
+  @keyframes pop { from { transform:scale(.8); opacity:0; } to { transform:scale(1); opacity:1; } }
+  /* ── journal result ── */
+  .dominant { text-align:center; padding:6px 0 18px; }
+  .dominant .emoji { font-size:3.6rem; }
+  .dominant .name { font-size:1.5rem; font-weight:800; text-transform:capitalize; }
+  .dominant .conf { color:#8a84a8; }
+  .bar-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .bar-label { width:95px; font-size:.9rem; text-transform:capitalize; color:#5b5480; }
+  .bar-track { flex:1; height:14px; background:#eee9fb; border-radius:99px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:99px; width:0; transition:width 1s cubic-bezier(.22,1,.36,1); }
+  .bar-pct { width:44px; text-align:right; font-size:.85rem; color:#8a84a8; }
+  .ai-reply { margin-top:16px; padding:15px 17px; border-radius:14px; background:linear-gradient(135deg,#f3efff,#e8fbf5); border-left:4px solid #7c6cf0; color:#4a4570; line-height:1.6; }
+  .ai-reply b { color:#7c6cf0; }
+  .valence { text-align:center; margin-top:12px; font-size:.9rem; color:#8a84a8; }
+  .recs { margin-top:16px; }
+  .recs h3 { color:#3b3663; margin-bottom:10px; font-size:1rem; }
+  .rec-card { display:flex; gap:12px; align-items:flex-start; background:#f8f6ff; border:1px solid #e9e2fb; border-radius:14px; padding:14px; margin-bottom:10px; }
+  .rec-emoji { font-size:1.7rem; }
+  .rec-body { flex:1; }
+  .rec-title { font-weight:700; color:#3b3663; }
+  .rec-desc { font-size:.88rem; color:#6d6794; margin:3px 0; }
+  .rec-meta { font-size:.78rem; color:#9a94b8; }
+  .rec-rate button { border:none; background:#eee9fb; border-radius:10px; padding:6px 9px; cursor:pointer; font-size:1rem; margin-left:5px; transition:.15s; }
+  .rec-rate button:hover { transform:scale(1.15); }
+  .rec-rate button.picked { background:#7c6cf0; }
+  /* ── chat 💬 ── */
+  .chat-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .chat-head h3 { color:#3b3663; margin:0; }
+  .chat-box { height:400px; overflow-y:auto; padding:6px 4px; }
+  .msg { max-width:80%; padding:11px 15px; border-radius:16px; margin-bottom:10px; line-height:1.55; font-size:.94rem; white-space:pre-wrap; word-wrap:break-word; animation:pop .25s ease; }
+  .msg.user { margin-left:auto; background:linear-gradient(135deg,#7c6cf0,#a86cf0); color:#fff; border-bottom-right-radius:4px; }
+  .msg.bot { background:#f3f0fd; color:#4a4570; border-bottom-left-radius:4px; }
+  .msg.crisis { background:#fff5f5; border:1.5px solid #fca5a5; color:#7f1d1d; }
+  .msg .meta { font-size:.7rem; opacity:.7; margin-top:5px; }
+  .typing { display:inline-flex; gap:5px; align-items:center; }
+  .typing span { width:8px; height:8px; border-radius:50%; background:#b6aef0; animation:blink 1.2s infinite; }
+  .typing span:nth-child(2) { animation-delay:.2s; }
+  .typing span:nth-child(3) { animation-delay:.4s; }
+  @keyframes blink { 0%,80%,100% { opacity:.3; transform:translateY(0); } 40% { opacity:1; transform:translateY(-3px); } }
+  .chat-input-row { display:flex; gap:8px; margin-top:12px; }
+  .chat-input-row input { margin-bottom:0; }
+  .send-btn { width:auto; padding:0 24px; white-space:nowrap; }
+  /* ── dashboard ── */
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:18px; }
+  .stat { background:rgba(255,255,255,.9); border-radius:16px; padding:16px; text-align:center; box-shadow:0 10px 25px rgba(80,60,150,.15); }
+  .stat .big { font-size:1.7rem; font-weight:800; color:#3b3663; }
+  .stat .lbl { font-size:.82rem; color:#8a84a8; margin-top:2px; }
+  .chart-box { position:relative; height:230px; }
+  .chart-row { display:grid; grid-template-columns:3fr 2fr; gap:18px; }
+  @media (max-width:700px) { .chart-row { grid-template-columns:1fr; } }
+  .card h3 { color:#3b3663; margin-bottom:14px; }
+  /* heatmap */
+  .hm-scroll { overflow-x:auto; padding-bottom:6px; }
+  .hm-grid { display:flex; gap:3px; }
+  .hm-col { display:flex; flex-direction:column; gap:3px; }
+  .hm-cell { width:13px; height:13px; border-radius:3px; background:#efeaf9; }
+  .hm-legend { display:flex; align-items:center; gap:6px; justify-content:flex-end; margin-top:10px; font-size:.8rem; color:#8a84a8; }
+  .hm-legend .hm-cell { width:12px; height:12px; }
+  .empty { text-align:center; color:#8a84a8; padding:30px 10px; }
+  .empty .emo { font-size:3rem; display:block; margin-bottom:8px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header"><h1>🧠💚 MoodMentor</h1><p>Your AI emotional wellness companion</p></div>
+
+  <!-- ═══ AUTH ═══ -->
+  <div class="card" id="authCard">
+    <div class="tabs">
+      <button id="tabLogin" class="active" onclick="switchTab('login')">Login</button>
+      <button id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+    <div class="error" id="authError"></div>
+    <input id="nameInput" class="hidden" placeholder="Your name" />
+    <input id="emailInput" type="email" placeholder="Email (demo: demo@moodmentor.ai)" />
+    <input id="passwordInput" type="password" placeholder="Password (demo: demo123)" />
+    <button class="btn" id="authBtn" onclick="doAuth()">Login 💜</button>
+    <button class="link-btn demo-link" onclick="enterDemo()">✨ Explore with demo data (no server needed)</button>
+  </div>
+
+  <!-- ═══ APP SHELL ═══ -->
+  <div id="appShell" class="hidden">
+    <div class="nav">
+      <div class="views">
+        <button id="vJournal" class="active" onclick="showView('journal')">✍️ Journal</button>
+        <button id="vChat" onclick="showView('chat')">💬 Chat</button>
+        <button id="vDashboard" onclick="showView('dashboard')">📊 Dashboard</button>
+      </div>
+      <div class="who">Hi, <b id="userName"></b> 👋 <button class="link-btn" onclick="logout()">Log out</button></div>
+    </div>
+
+    <!-- JOURNAL VIEW -->
+    <div id="journalView">
+      <div class="card">
+        <div class="error" id="journalError"></div>
+        <textarea id="journalText" placeholder="How are you feeling today? Pour your heart out..."></textarea>
+        <div class="live-meter hidden" id="liveMeter"></div>
+        <button class="btn" id="analyzeBtn" onclick="analyze()">Analyze My Mood ✨</button>
+      </div>
+      <div class="card hidden" id="resultCard">
+        <div class="dominant">
+          <div class="emoji" id="domEmoji"></div>
+          <div class="name" id="domName"></div>
+          <div class="conf" id="domConf"></div>
+        </div>
+        <div id="bars"></div>
+        <div class="valence" id="valence"></div>
+        <div class="ai-reply hidden" id="aiReply"></div>
+        <div class="recs hidden" id="recs"><h3>🎯 Recommended for you</h3><div id="recList"></div></div>
+      </div>
+    </div>
+
+    <!-- CHAT VIEW 💬 -->
+    <div id="chatView" class="hidden">
+      <div class="card">
+        <div class="chat-head">
+          <h3>💬 MoodMentor Companion</h3>
+          <button class="link-btn" onclick="clearChat()">🗑️ Clear chat</button>
+        </div>
+        <div class="chat-box" id="chatBox"></div>
+        <div class="chat-input-row">
+          <input id="chatInput" placeholder="Talk to me about anything..." onkeydown="if(event.key==='Enter')sendChat()" />
+          <button class="btn send-btn" id="chatSendBtn" onclick="sendChat()">Send 💜</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div id="dashboardView" class="hidden">
+      <div class="stats">
+        <div class="stat"><div class="big" id="stStreak">–</div><div class="lbl">🔥 Day streak</div></div>
+        <div class="stat"><div class="big" id="stEntries">–</div><div class="lbl">📝 Entries</div></div>
+        <div class="stat"><div class="big" id="stEmotion">–</div><div class="lbl">🎭 Top emotion</div></div>
+        <div class="stat"><div class="big" id="stTrend">–</div><div class="lbl">📈 7-day trend</div></div>
+      </div>
+      <div class="chart-row">
+        <div class="card"><h3>📈 Mood Trend (30 days)</h3><div class="chart-box"><canvas id="trendChart"></canvas></div></div>
+        <div class="card"><h3>🎭 Emotion Mix</h3><div class="chart-box"><canvas id="distChart"></canvas></div></div>
+      </div>
+      <div class="card"><h3>🗓️ Your Mood Calendar</h3>
+        <div class="hm-scroll"><div class="hm-grid" id="heatmapGrid"></div></div>
+        <div class="hm-legend">😟
+          <div class="hm-cell" style="background:#ef4444"></div>
+          <div class="hm-cell" style="background:#fca5a5"></div>
+          <div class="hm-cell" style="background:#d1d5db"></div>
+          <div class="hm-cell" style="background:#a7f3d0"></div>
+          <div class="hm-cell" style="background:#34d399"></div> 😊
+        </div>
+      </div>
+      <div class="card empty hidden" id="emptyDash">
+        <span class="emo">🌱</span>No journal entries yet — write your first one to unlock your dashboard!
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = "http://127.0.0.1:8000";
+let token = null, mode = "login", demoMode = false, chatLoaded = false;
+let chTrend = null, chDist = null, meterTimer = null;
+
+const META = {
+  joy:{emoji:"😊",color:"#f59e0b"}, sadness:{emoji:"😢",color:"#3b82f6"},
+  anger:{emoji:"😠",color:"#ef4444"}, fear:{emoji:"😨",color:"#8b5cf6"},
+  surprise:{emoji:"😲",color:"#f97316"}, disgust:{emoji:"🤢",color:"#22c55e"},
+  neutral:{emoji:"😐",color:"#94a3b8"},
+};
+const REC_EMOJI = { breathing:"🌬️", journaling:"✍️", music:"🎵", nature:"🌿", social:"🤝", physical:"🏃", mindfulness:"🧘", meditation:"🧘", gratitude:"🙏" };
+const DEMO_REPLIES = {
+  joy:"It's lovely to feel the happiness in your words — moments like this deserve to be savored. Keep collecting them! 💛",
+  sadness:"Thank you for being this honest. What you feel is valid, and you don't have to carry it alone. Be gentle with yourself today. 💙",
+  anger:"Your anger makes sense — it's a signal something felt unfair. Writing it down is already a healthy step. 🧡",
+  fear:"It takes courage to name anxious thoughts. Feelings of fear aren't facts about the future — one step at a time. 💚",
+  surprise:"Something unexpected happened — writing it down is a great way to make sense of it. 💜",
+  disgust:"That reaction is worth listening to — it often points to a value that matters to you. 🤎",
+  neutral:"Thanks for checking in with yourself today — even ordinary days deserve attention. ✨",
+};
+const DEMO_CHAT = [
+  "I'm here and listening 💚 Tell me more about that?",
+  "That sounds really significant. How long has this been on your mind?",
+  "I hear you. What feels like the hardest part right now?",
+  "Thanks for opening up — that takes courage. What would help you feel even 1% better today?",
+];
+
+/* ─────────── helpers ─────────── */
+const $ = id => document.getElementById(id);
+function showError(id,msg){ const e=$(id); e.textContent=msg; e.style.display=msg?"block":"none"; }
+async function api(path, method="GET", body=null){
+  const res = await fetch(API+path,{ method, headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` }, body: body?JSON.stringify(body):null });
+  if(res.status===204) return null;
+  const data = await res.json();
+  if(!res.ok) throw new Error(data.detail||"Request failed");
+  return data;
+}
+
+/* ─────────── auth ─────────── */
+function switchTab(m){
+  mode=m;
+  $("tabLogin").classList.toggle("active",m==="login");
+  $("tabSignup").classList.toggle("active",m==="signup");
+  $("nameInput").classList.toggle("hidden",m==="login");
+  $("authBtn").textContent = m==="login" ? "Login 💜" : "Create Account 🌱";
+}
+async function doAuth(){
+  showError("authError","");
+  const body = mode==="login"
+    ? { email:$("emailInput").value.trim(), password:$("passwordInput").value }
+    : { name:$("nameInput").value.trim(), email:$("emailInput").value.trim(), password:$("passwordInput").value };
+  try{
+    const res = await fetch(`${API}/auth/${mode}`,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.detail||"Authentication failed");
+    token = data.access_token;
+    enterApp(data.user.name);
+  }catch(e){ showError("authError", e.message+" — is uvicorn running?"); }
+}
+function enterDemo(){ demoMode=true; enterApp("Explorer"); }
+function enterApp(name){
+  $("userName").textContent = name;
+  $("authCard").classList.add("hidden");
+  $("appShell").classList.remove("hidden");
+}
+function logout(){ location.reload(); }
+function showView(v){
+  $("journalView").classList.toggle("hidden", v!=="journal");
+  $("chatView").classList.toggle("hidden", v!=="chat");
+  $("dashboardView").classList.toggle("hidden", v!=="dashboard");
+  $("vJournal").classList.toggle("active", v==="journal");
+  $("vChat").classList.toggle("active", v==="chat");
+  $("vDashboard").classList.toggle("active", v==="dashboard");
+  if(v==="dashboard") loadDashboard();
+  if(v==="chat") loadChat();
+}
+
+/* ─────────── ⚡ live emotion meter ─────────── */
+$("journalText").addEventListener("input", () => {
+  clearTimeout(meterTimer);
+  const text = $("journalText").value.trim();
+  if(text.length < 20){ $("liveMeter").classList.add("hidden"); return; }
+  meterTimer = setTimeout(() => updateLiveMeter(text), 700);  // debounce
+});
+async function updateLiveMeter(text){
+  const meter = $("liveMeter");
+  try{
+    const data = demoMode ? demoAnalyze(text) : await api("/analyze","POST",{text});
+    const top3 = Object.entries(data.emotions).slice(0,3);
+    meter.innerHTML = `<span class="lm-title">⚡ Live:</span>` + top3.map(([e,s])=>{
+      const m = META[e]||META.neutral;
+      return `<span class="lm-chip" style="border-color:${m.color}">${m.emoji} ${e} ${(s*100).toFixed(0)}%</span>`;
+    }).join("");
+    meter.classList.remove("hidden");
+  }catch(e){ /* meter is a bonus — fail silently */ }
+}
+
+/* ─────────── journal ─────────── */
+async function analyze(){
+  showError("journalError","");
+  const text = $("journalText").value.trim();
+  if(text.length<3) return showError("journalError","Write a little more first 💭");
+  const btn=$("analyzeBtn"); btn.disabled=true; btn.textContent="⏳ Reading your emotions...";
+  try{
+    const data = demoMode ? demoAnalyze(text) : await api("/journal","POST",{text});
+    renderResult(data);
+  }catch(e){ showError("journalError", e.message); }
+  finally{ btn.disabled=false; btn.textContent="Analyze My Mood ✨"; }
+}
+function renderResult(data){
+  const meta = META[data.dominant_emotion]||META.neutral;
+  $("domEmoji").textContent = meta.emoji;
+  $("domName").textContent = data.dominant_emotion;
+  $("domName").style.color = meta.color;
+  $("domConf").textContent = `${(data.confidence*100).toFixed(0)}% confidence`;
+  const bars=$("bars"); bars.innerHTML="";
+  for(const [emotion,score] of Object.entries(data.emotions)){
+    const m=META[emotion]||META.neutral;
+    bars.innerHTML += `<div class="bar-row"><div class="bar-label">${m.emoji} ${emotion}</div><div class="bar-track"><div class="bar-fill" data-w="${score*100}" style="background:${m.color}"></div></div><div class="bar-pct">${(score*100).toFixed(0)}%</div></div>`;
+  }
+  requestAnimationFrame(()=>setTimeout(()=>document.querySelectorAll(".bar-fill").forEach(b=>b.style.width=b.dataset.w+"%"),50));
+  const v=data.valence_score;
+  $("valence").textContent = `Overall tone: ${v>0.2?"positive 🌤️":v<-0.2?"heavy 🌧️":"balanced ⛅"} (valence ${v})`;
+  const reply=$("aiReply");
+  if(data.ai_reply){ reply.innerHTML="<b>🤖 MoodMentor says:</b> "+data.ai_reply; reply.classList.remove("hidden"); }
+  else reply.classList.add("hidden");
+  const recs=$("recs"), list=$("recList");
+  if(Array.isArray(data.recommendations) && data.recommendations.length){
+    list.innerHTML="";
+    data.recommendations.forEach(r=>{
+      const a=r.activity;
+      list.innerHTML += `<div class="rec-card"><div class="rec-emoji">${REC_EMOJI[a.type]||"💡"}</div>
+        <div class="rec-body"><div class="rec-title">${a.title}</div><div class="rec-desc">${a.description}</div>
+        <div class="rec-meta">⏱️ ${a.duration_minutes} min · ${a.type}</div></div>
+        <div class="rec-rate"><button onclick="rateRec(${r.id},1,this)">👍</button><button onclick="rateRec(${r.id},-1,this)">👎</button></div></div>`;
+    });
+    recs.classList.remove("hidden");
+  } else recs.classList.add("hidden");
+  $("resultCard").classList.remove("hidden");
+  $("resultCard").scrollIntoView({behavior:"smooth"});
+}
+async function rateRec(id,rating,btn){
+  btn.parentElement.querySelectorAll("button").forEach(b=>b.classList.remove("picked"));
+  btn.classList.add("picked");
+  if(demoMode) return;
+  try{ await api(`/recommendations/${id}/rate`,"POST",{rating}); }catch(e){}
+}
+
+/* ─────────── 💬 chat companion ─────────── */
+function addMsg(role, text, emotion=null, crisis=false){
+  const box=$("chatBox");
+  const div=document.createElement("div");
+  div.className = "msg " + (role==="user" ? "user" : crisis ? "bot crisis" : "bot");
+  div.textContent = text;
+  if(role==="user" && emotion){
+    const m = META[emotion]||META.neutral;
+    const meta=document.createElement("div");
+    meta.className="meta"; meta.textContent=`${m.emoji} detected: ${emotion}`;
+    div.appendChild(meta);
+  }
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+function showTyping(){
+  const t=document.createElement("div");
+  t.id="typingBubble"; t.className="msg bot typing";
+  t.innerHTML="<span></span><span></span><span></span>";
+  $("chatBox").appendChild(t);
+  $("chatBox").scrollTop = $("chatBox").scrollHeight;
+}
+function hideTyping(){ const t=$("typingBubble"); if(t) t.remove(); }
+
+async function loadChat(){
+  if(chatLoaded) return;
+  const box=$("chatBox"); box.innerHTML="";
+  if(demoMode){
+    addMsg("assistant","Hi! I'm your MoodMentor companion 💚 (Demo mode — my replies are pre-written, but the real AI works with the server!) How are you feeling today?");
+    chatLoaded=true; return;
+  }
+  try{
+    const msgs = await api("/chat/history?limit=50");
+    if(!msgs.length){
+      addMsg("assistant","Hi! I'm your MoodMentor companion 💚 I keep track of your journal moods, and I'm here whenever you want to talk. How are you feeling right now?");
+    } else {
+      msgs.forEach(m => m.role==="user" ? addMsg("user",m.text,m.emotion) : addMsg("assistant",m.text));
+    }
+    chatLoaded=true;
+  }catch(e){ addMsg("assistant","⚠️ Couldn't load chat — is the server running?"); }
+}
+
+async function sendChat(){
+  const inp=$("chatInput"), text=inp.value.trim();
+  if(!text) return;
+  inp.value="";
+  addMsg("user",text);
+  showTyping();
+  try{
+    const data = demoMode ? demoChat(text) : await api("/chat","POST",{text});
+    hideTyping();
+    // tag the user's bubble with the detected emotion
+    const emo = data.user_message && data.user_message.emotion;
+    if(emo){
+      const bubbles=$("chatBox").querySelectorAll(".msg.user");
+      const last=bubbles[bubbles.length-1];
+      if(last && !last.querySelector(".meta")){
+        const m=META[emo]||META.neutral;
+        const meta=document.createElement("div");
+        meta.className="meta"; meta.textContent=`${m.emoji} detected: ${emo}`;
+        last.appendChild(meta);
+      }
+    }
+    addMsg("assistant", data.reply.text, null, !!data.crisis);
+  }catch(e){ hideTyping(); addMsg("assistant","⚠️ "+e.message); }
+}
+
+async function clearChat(){
+  if(!demoMode){ try{ await api("/chat/history","DELETE"); }catch(e){} }
+  chatLoaded=false; loadChat();
+}
+
+/* ─────────── dashboard ─────────── */
+async function loadDashboard(){
+  try{
+    let summary, daily, dist, heat;
+    if(demoMode){ ({summary,daily,dist,heat}=genDemoData()); }
+    else{
+      [summary,daily,dist,heat] = await Promise.all([
+        api("/analytics/summary"), api("/analytics/trends?days=30"),
+        api("/analytics/distribution?days=30"), api("/analytics/heatmap?days=182") ]);
+    }
+    renderStats(summary); renderCharts(daily,dist); renderHeatmap(heat);
+    $("emptyDash").classList.toggle("hidden", summary.total_entries>0);
+  }catch(e){ console.error(e); }
+}
+function renderStats(s){
+  $("stStreak").textContent = s.streak_days;
+  $("stEntries").textContent = s.total_entries;
+  const me = s.most_frequent_emotion;
+  $("stEmotion").textContent = me ? META[me].emoji : "–";
+  const t = s.trend;
+  $("stTrend").textContent = t==="improving"?"↗️":t==="declining"?"↘️":"➡️";
+  $("stTrend").title = t;
+}
+function renderCharts(daily,dist){
+  if(chTrend) chTrend.destroy(); if(chDist) chDist.destroy();
+  chTrend = new Chart($("trendChart"),{ type:"line",
+    data:{ labels:daily.map(d=>d.date.slice(5)), datasets:[{ data:daily.map(d=>d.avg_valence), borderColor:"#7c6cf0", backgroundColor:"rgba(124,108,240,.15)", fill:true, tension:.4, pointRadius:3 }]},
+    options:{ maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{min:-1,max:1} } } });
+  const labels = Object.keys(dist.dominant_counts);
+  chDist = new Chart($("distChart"),{ type:"doughnut",
+    data:{ labels:labels.map(l=>`${META[l].emoji} ${l}`), datasets:[{ data:labels.map(l=>dist.dominant_counts[l]), backgroundColor:labels.map(l=>META[l].color), borderWidth:2, borderColor:"#fff" }]},
+    options:{ maintainAspectRatio:false, plugins:{legend:{position:"bottom"}} } });
+}
+function valenceColor(v){
+  if(v>=0.5) return "#34d399"; if(v>=0.15) return "#a7f3d0";
+  if(v>-0.15) return "#d1d5db"; if(v>-0.5) return "#fca5a5";
+  return "#ef4444";
+}
+function renderHeatmap(daily){
+  const map={}; daily.forEach(d=>map[d.date]=d);
+  const grid=$("heatmapGrid"); grid.innerHTML="";
+  const WEEKS=26, end=new Date(), start=new Date();
+  start.setDate(end.getDate()-(WEEKS*7-1));
+  start.setDate(start.getDate()-start.getDay());
+  const totalDays=Math.floor((end-start)/86400000)+1;
+  const weeks=Math.ceil(totalDays/7);
+  for(let w=0; w<weeks; w++){
+    const col=document.createElement("div"); col.className="hm-col";
+    for(let r=0; r<7; r++){
+      const d=new Date(start); d.setDate(start.getDate()+w*7+r);
+      const cell=document.createElement("div"); cell.className="hm-cell";
+      if(d<=end){
+        const key=d.toISOString().slice(0,10), rec=map[key];
+        if(rec){ cell.style.background=valenceColor(rec.avg_valence);
+          cell.title=`${key}\n${META[rec.dominant_emotion].emoji} ${rec.dominant_emotion} · valence ${rec.avg_valence} · ${rec.entries} entr${rec.entries>1?"ies":"y"}`;
+        } else cell.title=`${key}\nNo entry`;
+      } else cell.style.visibility="hidden";
+      col.appendChild(cell);
+    }
+    grid.appendChild(col);
+  }
+}
+
+/* ─────────── demo mode (no server needed) ─────────── */
+function demoAnalyze(text){
+  const t=text.toLowerCase(), has=(...ws)=>ws.some(w=>t.includes(w));
+  let dom="neutral";
+  if(has("happy","excit","great","amazing","love","promot","won","proud")) dom="joy";
+  else if(has("sad","alone","lonely","cry","depress","empty","hopeless")) dom="sadness";
+  else if(has("angry","furious","annoy","hate","unfair","frustrat")) dom="anger";
+  else if(has("worr","anxi","stress","afraid","scared","nervous","deadline","exam","sleep")) dom="fear";
+  else if(has("surpris","shock","unexpected","wow","suddenly")) dom="surprise";
+  else if(has("disgust","gross","sick of")) dom="disgust";
+  const emotions={}; let remaining=1;
+  const domScore=0.5+Math.random()*0.3; emotions[dom]=domScore; remaining-=domScore;
+  const others=Object.keys(META).filter(e=>e!==dom);
+  others.forEach((e,i)=>{ const s=i===others.length-1?Math.max(.005,remaining):remaining*Math.random()*.4; emotions[e]=+s.toFixed(3); remaining-=s; });
+  const pos=(emotions.joy||0)+.5*(emotions.surprise||0), neg=(emotions.sadness||0)+(emotions.anger||0)+(emotions.fear||0)+(emotions.disgust||0);
+  return { emotions, dominant_emotion:dom, confidence:emotions[dom],
+    valence_score:+Math.max(-1,Math.min(1,pos-neg)).toFixed(3),
+    ai_reply:DEMO_REPLIES[dom], recommendations:[] };
+}
+function demoChat(text){
+  const a = demoAnalyze(text);
+  const reply = DEMO_CHAT[Math.floor(Math.random()*DEMO_CHAT.length)];
+  return { user_message:{ emotion:a.dominant_emotion }, reply:{ text:reply }, crisis:false };
+}
+function genDemoData(){
+  const daily=[]; let v=0.1;
+  for(let i=181;i>=0;i--){
+    if(Math.random()<0.28) continue;
+    v=Math.max(-1,Math.min(1,v+(Math.random()-0.48)*0.45));
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const dom = v>0.3?"joy":v>0.05?"neutral":v>-0.3?"fear":v>-0.6?"sadness":"anger";
+    daily.push({ date:d.toISOString().slice(0,10), avg_valence:+v.toFixed(2), dominant_emotion:dom, entries:1 });
+  }
+  const counts={}; daily.forEach(d=>counts[d.dominant_emotion]=(counts[d.dominant_emotion]||0)+1);
+  const top=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+  const last7=daily.slice(-7), prev7=daily.slice(-14,-7);
+  const avg=a=>a.length?a.reduce((s,x)=>s+x.avg_valence,0)/a.length:0;
+  const diff=avg(last7)-avg(prev7);
+  return { daily, heat:daily, dist:{ dominant_counts:counts },
+    summary:{ total_entries:daily.length, streak_days:3, most_frequent_emotion:top?top[0]:null,
+      avg_valence_all_time:+avg(daily).toFixed(2), recent_avg_valence:+avg(last7).toFixed(2),
+      previous_avg_valence:+avg(prev7).toFixed(2),
+      trend: diff>0.05?"improving":diff<-0.05?"declining":"steady" } };
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+transformers
+pydantic
+python-dotenv
+sqlalchemy
+bcrypt
+python-jose[cryptography]
+email-validator
+google-genai
