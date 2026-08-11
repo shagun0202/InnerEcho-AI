@@ -22,6 +22,8 @@ class User(Base):
 
     entries = relationship("JournalEntry", back_populates="user",
                            cascade="all, delete-orphan")
+    chat_messages = relationship("ChatMessage", back_populates="user",   # 🆕 ADD THIS
+                                 cascade="all, delete-orphan")
 
 
 class JournalEntry(Base):
@@ -76,3 +78,14 @@ class Recommendation(Base):                               # 🆕 entry ↔ activ
     entry = relationship("JournalEntry", back_populates="recommendations")
     activity = relationship("Activity")
 
+class ChatMessage(Base):                                # 🆕 Week 5 — companion chat
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    role = Column(String(10), nullable=False)       # "user" or "assistant"
+    text = Column(Text, nullable=False)
+    emotion = Column(String(20), nullable=True)     # detected emotion (user msgs only)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="chat_messages")

@@ -36,6 +36,17 @@ FALLBACK_REPLIES = {
     "neutral": "Thanks for checking in with yourself today — even ordinary days deserve a moment of attention. Sometimes quiet days are exactly what we need. Is there one small thing that could add a spark to tomorrow? ✨",
 }
 
+# Keep curated offline replies warm and relevant when GoEmotions returns a
+# nuanced label that is not one of the original seven catalog emotions.
+FALLBACK_EMOTION_GROUP = {
+    "annoyance": "anger", "disapproval": "anger", "nervousness": "fear",
+    "grief": "sadness", "disappointment": "sadness", "embarrassment": "sadness",
+    "remorse": "sadness", "amusement": "joy", "excitement": "joy",
+    "love": "joy", "gratitude": "joy", "optimism": "joy", "pride": "joy",
+    "relief": "joy", "admiration": "joy", "approval": "joy", "caring": "joy",
+    "confusion": "surprise", "curiosity": "surprise", "realization": "surprise",
+}
+
 
 class GeminiService:
     def __init__(self):
@@ -51,7 +62,8 @@ class GeminiService:
 
     def generate_empathetic_reply(self, text: str, dominant_emotion: str,
                                   confidence: float) -> str:
-        fallback = FALLBACK_REPLIES.get(dominant_emotion, FALLBACK_REPLIES["neutral"])
+        fallback_key = FALLBACK_EMOTION_GROUP.get(dominant_emotion, dominant_emotion)
+        fallback = FALLBACK_REPLIES.get(fallback_key, FALLBACK_REPLIES["neutral"])
         if self.client is None:
             return fallback
         try:

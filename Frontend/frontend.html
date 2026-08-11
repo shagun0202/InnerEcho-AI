@@ -1,525 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>MoodMentor 🧠💚</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<style>
-  * { margin:0; padding:0; box-sizing:border-box; font-family:"Segoe UI",system-ui,-apple-system,sans-serif; }
-  body { min-height:100vh; background:linear-gradient(135deg,#a8edea 0%,#c3b2f7 50%,#fed6e3 100%); display:flex; justify-content:center; padding:28px 14px; }
-  .app { width:100%; max-width:760px; }
-  .hidden { display:none !important; }
-  .header { text-align:center; color:#3b3663; margin-bottom:22px; }
-  .header h1 { font-size:2.1rem; }
-  .header p { opacity:.75; margin-top:4px; }
-  .card { background:rgba(255,255,255,.9); backdrop-filter:blur(10px); border-radius:20px; padding:24px; box-shadow:0 18px 45px rgba(80,60,150,.22); margin-bottom:18px; }
-  .tabs { display:flex; gap:8px; margin-bottom:16px; }
-  .tabs button { flex:1; padding:10px; border:none; border-radius:12px; cursor:pointer; background:#eee9fb; color:#5b5480; font-weight:600; transition:.2s; }
-  .tabs button.active { background:#7c6cf0; color:#fff; }
-  input, textarea { width:100%; padding:12px 14px; margin-bottom:12px; border:2px solid #e4def5; border-radius:12px; font-size:1rem; outline:none; transition:.2s; background:#fbfaff; }
-  input:focus, textarea:focus { border-color:#7c6cf0; }
-  textarea { min-height:120px; resize:vertical; line-height:1.5; }
-  .btn { width:100%; padding:13px; border:none; border-radius:12px; cursor:pointer; background:linear-gradient(135deg,#7c6cf0,#a86cf0); color:#fff; font-size:1.02rem; font-weight:700; transition:.2s; }
-  .btn:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(124,108,240,.4); }
-  .btn:disabled { opacity:.6; cursor:wait; transform:none; }
-  .error { background:#ffe5e5; color:#c0392b; padding:10px 14px; border-radius:10px; margin-bottom:12px; font-size:.9rem; display:none; }
-  .link-btn { background:none; border:none; color:#7c6cf0; cursor:pointer; font-weight:600; }
-  .demo-link { display:block; text-align:center; margin-top:10px; }
-  /* ── nav ── */
-  .nav { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
-  .nav .views { display:flex; gap:8px; }
-  .nav .views button { padding:9px 18px; border:none; border-radius:99px; cursor:pointer; background:rgba(255,255,255,.7); color:#5b5480; font-weight:700; transition:.2s; }
-  .nav .views button.active { background:#7c6cf0; color:#fff; }
-  .nav .who { color:#3b3663; font-size:.95rem; }
-  /* ── live emotion meter ⚡ ── */
-  .live-meter { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:-4px 0 12px; font-size:.82rem; }
-  .lm-title { color:#8a84a8; font-weight:700; }
-  .lm-chip { border:1.5px solid; border-radius:99px; padding:3px 10px; background:#fff; color:#5b5480; animation:pop .3s ease; }
-  @keyframes pop { from { transform:scale(.8); opacity:0; } to { transform:scale(1); opacity:1; } }
-  /* ── journal result ── */
-  .dominant { text-align:center; padding:6px 0 18px; }
-  .dominant .emoji { font-size:3.6rem; }
-  .dominant .name { font-size:1.5rem; font-weight:800; text-transform:capitalize; }
-  .dominant .conf { color:#8a84a8; }
-  .bar-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
-  .bar-label { width:95px; font-size:.9rem; text-transform:capitalize; color:#5b5480; }
-  .bar-track { flex:1; height:14px; background:#eee9fb; border-radius:99px; overflow:hidden; }
-  .bar-fill { height:100%; border-radius:99px; width:0; transition:width 1s cubic-bezier(.22,1,.36,1); }
-  .bar-pct { width:44px; text-align:right; font-size:.85rem; color:#8a84a8; }
-  .ai-reply { margin-top:16px; padding:15px 17px; border-radius:14px; background:linear-gradient(135deg,#f3efff,#e8fbf5); border-left:4px solid #7c6cf0; color:#4a4570; line-height:1.6; }
-  .ai-reply b { color:#7c6cf0; }
-  .valence { text-align:center; margin-top:12px; font-size:.9rem; color:#8a84a8; }
-  .recs { margin-top:16px; }
-  .recs h3 { color:#3b3663; margin-bottom:10px; font-size:1rem; }
-  .rec-card { display:flex; gap:12px; align-items:flex-start; background:#f8f6ff; border:1px solid #e9e2fb; border-radius:14px; padding:14px; margin-bottom:10px; }
-  .rec-emoji { font-size:1.7rem; }
-  .rec-body { flex:1; }
-  .rec-title { font-weight:700; color:#3b3663; }
-  .rec-desc { font-size:.88rem; color:#6d6794; margin:3px 0; }
-  .rec-meta { font-size:.78rem; color:#9a94b8; }
-  .rec-rate button { border:none; background:#eee9fb; border-radius:10px; padding:6px 9px; cursor:pointer; font-size:1rem; margin-left:5px; transition:.15s; }
-  .rec-rate button:hover { transform:scale(1.15); }
-  .rec-rate button.picked { background:#7c6cf0; }
-  /* ── chat 💬 ── */
-  .chat-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
-  .chat-head h3 { color:#3b3663; margin:0; }
-  .chat-box { height:400px; overflow-y:auto; padding:6px 4px; }
-  .msg { max-width:80%; padding:11px 15px; border-radius:16px; margin-bottom:10px; line-height:1.55; font-size:.94rem; white-space:pre-wrap; word-wrap:break-word; animation:pop .25s ease; }
-  .msg.user { margin-left:auto; background:linear-gradient(135deg,#7c6cf0,#a86cf0); color:#fff; border-bottom-right-radius:4px; }
-  .msg.bot { background:#f3f0fd; color:#4a4570; border-bottom-left-radius:4px; }
-  .msg.crisis { background:#fff5f5; border:1.5px solid #fca5a5; color:#7f1d1d; }
-  .msg .meta { font-size:.7rem; opacity:.7; margin-top:5px; }
-  .typing { display:inline-flex; gap:5px; align-items:center; }
-  .typing span { width:8px; height:8px; border-radius:50%; background:#b6aef0; animation:blink 1.2s infinite; }
-  .typing span:nth-child(2) { animation-delay:.2s; }
-  .typing span:nth-child(3) { animation-delay:.4s; }
-  @keyframes blink { 0%,80%,100% { opacity:.3; transform:translateY(0); } 40% { opacity:1; transform:translateY(-3px); } }
-  .chat-input-row { display:flex; gap:8px; margin-top:12px; }
-  .chat-input-row input { margin-bottom:0; }
-  .send-btn { width:auto; padding:0 24px; white-space:nowrap; }
-  /* ── dashboard ── */
-  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:18px; }
-  .stat { background:rgba(255,255,255,.9); border-radius:16px; padding:16px; text-align:center; box-shadow:0 10px 25px rgba(80,60,150,.15); }
-  .stat .big { font-size:1.7rem; font-weight:800; color:#3b3663; }
-  .stat .lbl { font-size:.82rem; color:#8a84a8; margin-top:2px; }
-  .chart-box { position:relative; height:230px; }
-  .chart-row { display:grid; grid-template-columns:3fr 2fr; gap:18px; }
-  @media (max-width:700px) { .chart-row { grid-template-columns:1fr; } }
-  .card h3 { color:#3b3663; margin-bottom:14px; }
-  /* heatmap */
-  .hm-scroll { overflow-x:auto; padding-bottom:6px; }
-  .hm-grid { display:flex; gap:3px; }
-  .hm-col { display:flex; flex-direction:column; gap:3px; }
-  .hm-cell { width:13px; height:13px; border-radius:3px; background:#efeaf9; }
-  .hm-legend { display:flex; align-items:center; gap:6px; justify-content:flex-end; margin-top:10px; font-size:.8rem; color:#8a84a8; }
-  .hm-legend .hm-cell { width:12px; height:12px; }
-  .empty { text-align:center; color:#8a84a8; padding:30px 10px; }
-  .empty .emo { font-size:3rem; display:block; margin-bottom:8px; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MoodMentor — Your wellbeing, understood</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root{--ink:#182136;--muted:#69738a;--brand:#6956e8;--brand-dark:#4b38c5;--mint:#31c59b;--bg:#f6f7fc;--card:#fff;--line:#e7e9f2;--danger:#e55b67;--shadow:0 18px 50px rgba(30,39,75,.09)}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,"Segoe UI",system-ui,sans-serif} button,input,textarea{font:inherit} button{cursor:pointer}.hidden{display:none!important}.logo{display:flex;align-items:center;gap:10px;font-size:1.25rem;font-weight:800;letter-spacing:-.04em;color:var(--ink);text-decoration:none}.logo-mark{width:37px;height:37px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,var(--brand),#a081ff);box-shadow:0 8px 18px #6956e844}.eyebrow{color:var(--brand);font-size:.76rem;font-weight:800;letter-spacing:.11em;text-transform:uppercase}.btn{border:0;border-radius:12px;padding:12px 17px;background:linear-gradient(135deg,var(--brand),#876efa);color:#fff;font-weight:750;box-shadow:0 9px 18px #6956e833;transition:.2s}.btn:hover{transform:translateY(-2px);box-shadow:0 13px 25px #6956e844}.btn.ghost{color:var(--brand-dark);background:#f0edff;box-shadow:none}.btn.outline{background:transparent;color:var(--brand-dark);border:1.5px solid #dcd6ff;box-shadow:none}.btn.small{padding:8px 11px;border-radius:9px;font-size:.83rem}.card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow)}
+    /* landing */
+    #landing{min-height:100vh;background:radial-gradient(circle at 7% 3%,#d9fff3 0,transparent 30%),radial-gradient(circle at 95% 0,#e7e0ff 0,transparent 31%),#fbfbfe}.site-nav{height:78px;max-width:1180px;margin:auto;padding:0 26px;display:flex;align-items:center;justify-content:space-between}.site-nav .links{display:flex;gap:28px}.site-nav a{color:var(--muted);text-decoration:none;font-size:.92rem;font-weight:650}.site-nav .actions{display:flex;gap:10px}.hero{max-width:1180px;margin:auto;padding:74px 26px 98px;display:grid;grid-template-columns:1.05fr .95fr;align-items:center;gap:54px}.hero h1{font-size:clamp(2.7rem,5vw,4.6rem);line-height:1.04;letter-spacing:-.065em;margin:13px 0 20px}.hero h1 span{color:var(--brand)}.hero p{max-width:570px;color:var(--muted);font-size:1.08rem;line-height:1.75}.hero-actions{display:flex;gap:12px;margin-top:29px}.trust{display:flex;align-items:center;gap:9px;margin-top:24px;color:#6d778c;font-size:.85rem}.trust b{color:#168467}.hero-art{position:relative;min-height:405px;border-radius:32px;background:linear-gradient(145deg,#6d5dea,#9d81f9);overflow:hidden;box-shadow:0 30px 65px #5b4cc83d}.hero-art:before,.hero-art:after{content:"";position:absolute;border-radius:50%;background:#ffffff1f}.hero-art:before{width:340px;height:340px;right:-95px;top:-105px}.hero-art:after{width:260px;height:260px;left:-100px;bottom:-115px}.art-copy{position:absolute;left:34px;top:34px;color:#fff}.art-copy p{color:#ebe7ff;font-size:.87rem;margin:6px 0}.mood-orb{position:absolute;right:51px;top:108px;width:178px;height:178px;border-radius:50%;display:grid;place-items:center;font-size:5rem;background:#fff;box-shadow:0 20px 30px #3d30a74f}.floating{position:absolute;background:#fff;border-radius:15px;padding:13px 16px;box-shadow:0 12px 25px #392ca544;font-size:.82rem;min-width:165px}.floating b{display:block;font-size:.96rem;margin-top:3px}.f1{bottom:49px;left:32px}.f2{right:27px;bottom:34px}.features{max-width:1180px;margin:auto;padding:0 26px 90px}.features-head{text-align:center;max-width:570px;margin:0 auto 30px}.features h2{font-size:2rem;letter-spacing:-.045em;margin:10px 0}.features-head p{color:var(--muted);line-height:1.6}.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.feature{padding:24px}.feature-icon{font-size:1.7rem}.feature h3{margin:14px 0 7px}.feature p{color:var(--muted);font-size:.9rem;line-height:1.6}
+    /* auth */
+    #authScreen{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 5% 5%,#d9fff3,transparent 30%),#f8f8fd}.auth-wrap{width:min(1010px,100%);min-height:620px;display:grid;grid-template-columns:.94fr 1.06fr;background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 25px 80px #2532641b}.auth-aside{padding:51px;background:linear-gradient(145deg,#5d4bd7,#8974f4);color:#fff;position:relative;overflow:hidden}.auth-aside:after{content:"";position:absolute;width:290px;height:290px;border:1px solid #ffffff33;border-radius:50%;right:-115px;bottom:-130px}.auth-aside .logo{color:#fff}.auth-aside .logo-mark{background:#fff;color:var(--brand)}.auth-aside h1{font-size:2.5rem;letter-spacing:-.055em;margin:85px 0 15px}.auth-aside p{color:#e5e1ff;line-height:1.7;max-width:335px}.auth-point{margin-top:30px;display:flex;gap:10px;align-items:center;font-size:.9rem}.auth-form{padding:56px 54px;display:flex;flex-direction:column;justify-content:center}.back{align-self:flex-start;border:0;background:none;color:var(--muted);padding:0}.auth-form h2{font-size:2rem;letter-spacing:-.05em;margin:14px 0 8px}.auth-form>p{color:var(--muted);margin:0 0 27px}.field{margin-bottom:15px}.field label{display:block;font-size:.83rem;font-weight:700;margin:0 0 7px}.field input{width:100%;border:1.5px solid var(--line);border-radius:11px;padding:12px 13px;outline:0}.field input:focus{border-color:var(--brand);box-shadow:0 0 0 4px #6956e816}.form-error{display:none;background:#fff0f1;color:#b53140;padding:10px;border-radius:10px;font-size:.86rem;margin-bottom:14px}.auth-form .btn{width:100%;margin-top:4px}.switch-copy{text-align:center;font-size:.88rem;color:var(--muted);margin-top:20px}.switch-copy button{border:0;color:var(--brand-dark);font-weight:750;background:none}.demo{font-size:.84rem;text-align:center;margin-top:17px}.demo button{border:0;background:none;color:#278970;font-weight:700}
+    /* app */
+    #workspace{min-height:100vh;display:flex}.sidebar{width:251px;background:#fff;border-right:1px solid var(--line);padding:25px 15px;display:flex;flex-direction:column;position:fixed;inset:0 auto 0 0}.sidebar .logo{padding:0 9px;margin-bottom:37px}.side-label{font-size:.69rem;font-weight:800;color:#a1a8b8;text-transform:uppercase;letter-spacing:.1em;padding:0 12px;margin:16px 0 8px}.side-link{border:0;border-radius:11px;background:transparent;width:100%;padding:11px 12px;color:#687287;font-weight:650;text-align:left;margin:2px 0;font-size:.91rem}.side-link:hover{background:#f5f4ff}.side-link.active{background:#eeebff;color:var(--brand-dark)}.side-link span{display:inline-block;width:25px}.side-bottom{margin-top:auto;padding:12px 6px 0;border-top:1px solid var(--line)}.profile-mini{display:flex;gap:9px;align-items:center;padding:11px 7px}.avatar{width:35px;height:35px;border-radius:50%;display:grid;place-items:center;background:#e8e4ff;color:var(--brand-dark);font-weight:800}.profile-mini b{display:block;font-size:.84rem}.profile-mini small{color:var(--muted);font-size:.72rem}.main{width:calc(100% - 251px);margin-left:251px;padding:27px clamp(20px,4vw,56px) 55px}.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:29px}.topbar h1{font-size:1.65rem;letter-spacing:-.045em;margin:0}.topbar p{margin:5px 0 0;color:var(--muted);font-size:.88rem}.topbar-right{display:flex;align-items:center;gap:12px}.status{font-size:.76rem;color:#147a61;background:#e9fbf5;border-radius:20px;padding:7px 10px;font-weight:750}.mobile-nav{display:none}.view{display:none}.view.active{display:block}.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.metric{padding:19px}.metric span{font-size:.82rem;color:var(--muted)}.metric strong{display:block;font-size:1.85rem;margin:10px 0 3px;letter-spacing:-.055em}.metric small{font-size:.76rem;color:#8690a3}.dash-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:17px;margin-top:17px}.panel{padding:22px}.panel h3{font-size:1rem;margin:0 0 17px}.chart-box{height:265px}.entry-card{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}.entry-card:last-child{border:0}.entry-emoji{font-size:1.5rem}.entry-card b{font-size:.9rem}.entry-card p{font-size:.82rem;color:var(--muted);line-height:1.45;margin:5px 0}.entry-card time{font-size:.75rem;color:#969eae}.empty{color:var(--muted);text-align:center;padding:33px 12px}.empty .big{display:block;font-size:2rem;margin-bottom:8px}
+    .journal-layout{display:grid;grid-template-columns:1.1fr .9fr;gap:17px}.journal-textarea{width:100%;min-height:255px;resize:vertical;border:0;outline:0;font:inherit;font-size:1rem;line-height:1.7;color:var(--ink)}.journal-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:16px}.char-count{color:#98a0b0;font-size:.78rem}.live-meter{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}.chip{padding:6px 9px;border-radius:20px;background:#f5f4ff;color:#5141ba;font-size:.78rem;font-weight:700}.result-head{text-align:center;padding:6px 0 19px}.result-head .emoji{font-size:3.3rem}.result-head h2{font-size:1.55rem;margin:5px 0;text-transform:capitalize}.result-head p{color:var(--muted);font-size:.88rem}.emotion-row{display:grid;grid-template-columns:112px 1fr 38px;gap:9px;align-items:center;margin:9px 0;font-size:.84rem}.track{height:9px;border-radius:99px;background:#f0f1f6;overflow:hidden}.fill{height:100%;border-radius:99px;width:0;transition:width .7s}.insight{margin-top:18px;padding:15px;border-radius:14px;background:#f5f3ff;color:#4b456e;font-size:.9rem;line-height:1.65}.recommendation{display:flex;gap:11px;padding:13px 0;border-bottom:1px solid var(--line)}.recommendation:last-child{border:0}.recommendation p{color:var(--muted);font-size:.8rem;line-height:1.4;margin:3px 0}.rate{margin-left:auto;white-space:nowrap}.rate button{border:0;background:#f0eeff;border-radius:8px;padding:6px;margin-left:3px}.rate button.picked{background:#d9d2ff}
+    .chat-panel{max-width:850px;margin:auto;padding:0}.chat-head{padding:20px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.chat-head h2{font-size:1.05rem;margin:0}.chat-head span{display:block;font-size:.78rem;color:var(--muted);margin-top:3px}.chat-log{height:480px;overflow:auto;padding:21px}.message{max-width:77%;padding:11px 13px;margin:0 0 10px;border-radius:14px;line-height:1.55;font-size:.9rem;white-space:pre-wrap}.message.user{margin-left:auto;background:linear-gradient(135deg,var(--brand),#8b74f7);color:#fff;border-bottom-right-radius:3px}.message.bot{background:#f1f2f7;color:#414a60;border-bottom-left-radius:3px}.message.crisis{background:#fff1f2;border:1px solid #ffcbd1;color:#8e2633}.message small{display:block;font-size:.7rem;opacity:.7;margin-top:5px}.chat-input{display:flex;gap:9px;padding:15px;border-top:1px solid var(--line)}.chat-input input{flex:1;border:1.5px solid var(--line);border-radius:11px;padding:11px;outline:0}.chat-input input:focus{border-color:var(--brand)}.typing{color:var(--muted);font-style:italic}.history-list{max-width:850px;margin:auto}.history-item{padding:19px 21px;margin-bottom:12px}.history-item-top{display:flex;justify-content:space-between;gap:10px}.history-item h3{margin:0;font-size:1rem;text-transform:capitalize}.history-item time{color:var(--muted);font-size:.78rem}.history-item p{color:#566077;line-height:1.6;font-size:.9rem;margin:10px 0}.history-meta{display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:.8rem}.danger{background:#fff0f2;color:#bd3544;box-shadow:none}.profile-grid{max-width:900px;display:grid;grid-template-columns:.8fr 1.2fr;gap:17px}.profile-card{padding:28px;text-align:center}.profile-card .avatar{width:80px;height:80px;margin:auto;font-size:1.8rem}.profile-card h2{margin:14px 0 4px;font-size:1.35rem}.profile-card p{color:var(--muted);font-size:.86rem}.profile-detail{padding:27px}.detail-row{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:14px 0;font-size:.9rem}.detail-row span{color:var(--muted)}
+    .activity-action{margin-top:7px;border:0;background:none;color:var(--brand-dark);font-weight:750;padding:0;font-size:.8rem}.modal-backdrop{position:fixed;z-index:20;inset:0;background:#18213699;display:grid;place-items:center;padding:18px}.activity-modal{width:min(620px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:23px;padding:25px;position:relative;box-shadow:0 28px 70px #111b3d66}.modal-close{position:absolute;right:16px;top:15px;border:0;background:#f1f2f7;width:31px;height:31px;border-radius:50%;font-size:1.1rem}.activity-modal h2{font-size:1.45rem;letter-spacing:-.04em;margin:9px 32px 7px 0}.activity-modal p{color:var(--muted);line-height:1.6;font-size:.9rem}.detail-steps{margin:18px 0;padding:0;list-style:none;counter-reset:item}.detail-steps li{padding:10px 0 10px 34px;border-bottom:1px solid var(--line);position:relative;font-size:.88rem;line-height:1.5}.detail-steps li:before{content:counter(item);counter-increment:item;position:absolute;left:0;top:10px;width:23px;height:23px;border-radius:50%;display:grid;place-items:center;background:#eeeaff;color:var(--brand-dark);font-weight:800;font-size:.72rem}.breathing-visual{margin:18px 0;background:linear-gradient(135deg,#f1edff,#eafff7);border-radius:18px;padding:19px;display:grid;grid-template-columns:repeat(4,1fr);gap:7px;text-align:center}.breathing-visual div{background:#fff;border-radius:12px;padding:11px 4px;color:var(--brand-dark);font-size:.75rem;font-weight:800}.breathing-visual b{display:block;font-size:1rem;margin-top:4px}.focus-game{margin:18px 0;padding:18px;border-radius:18px;background:#f5f3ff;text-align:center}.focus-game p{margin:0 0 12px!important;color:#4b456e!important;font-weight:700}.color-options{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.color-options button{height:42px;border:0;border-radius:10px;box-shadow:inset 0 -3px #00000018;transition:.15s}.color-options button:hover{transform:scale(1.07)}.game-result{font-size:.82rem!important;margin-top:12px!important}.modal-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--line);padding-top:16px}.modal-footer span{color:var(--muted);font-size:.8rem}@media(max-width:850px){.site-nav .links{display:none}.hero{grid-template-columns:1fr;padding-top:45px}.hero-art{max-width:580px;width:100%;margin:auto}.feature-grid{grid-template-columns:1fr}.auth-wrap{grid-template-columns:1fr}.auth-aside{display:none}.sidebar{display:none}.main{width:100%;margin:0;padding:18px 14px 78px}.mobile-nav{display:flex;position:fixed;z-index:4;bottom:0;left:0;right:0;height:63px;background:#fff;border-top:1px solid var(--line);justify-content:space-around;padding:6px}.mobile-nav button{border:0;background:transparent;color:var(--muted);font-size:.7rem}.mobile-nav button.active{color:var(--brand-dark);font-weight:800}.metric-grid{grid-template-columns:repeat(2,1fr)}.dash-grid,.journal-layout,.profile-grid{grid-template-columns:1fr}.topbar-right .status{display:none}.chart-box{height:230px}.chat-log{height:calc(100vh - 250px)}.auth-form{padding:42px 27px}.site-nav{padding:0 17px}.hero,.features{padding-left:17px;padding-right:17px}}
+  </style>
 </head>
 <body>
-<div class="app">
-  <div class="header"><h1>🧠💚 MoodMentor</h1><p>Your AI emotional wellness companion</p></div>
+  <section id="landing">
+    <nav class="site-nav"><a class="logo" href="#landing"><span class="logo-mark">🧠</span>MoodMentor</a><div class="links"><a href="#features">Features</a><a href="#how">How it works</a><a href="#privacy">Privacy</a></div><div class="actions"><button class="btn outline small" onclick="openAuth('login')">Log in</button><button class="btn small" onclick="openAuth('signup')">Get started</button></div></nav>
+    <main class="hero"><div><div class="eyebrow">Emotional wellbeing, made personal</div><h1>Feel heard.<br><span>Grow gently.</span></h1><p>MoodMentor turns daily reflection into practical insight—helping you understand your emotions, spot patterns, and take a kinder next step.</p><div class="hero-actions"><button class="btn" onclick="openAuth('signup')">Start your journey →</button><button class="btn ghost" onclick="enterDemo()">Explore demo</button></div><div class="trust"><b>●</b> Private by design · Your reflection, your space</div></div><div class="hero-art"><div class="art-copy"><b>Today’s check-in</b><p>A moment for you</p></div><div class="mood-orb">😊</div><div class="floating f1">Current mood<b>Calm &amp; hopeful</b></div><div class="floating f2">7-day streak<b>🔥 You’re showing up</b></div></div></main>
+    <section class="features" id="features"><div class="features-head"><div class="eyebrow">Built around your wellbeing</div><h2>Small check-ins. Meaningful change.</h2><p>One calm place to reflect, receive support, and understand the trends behind your mood.</p></div><div class="feature-grid"><article class="feature card"><div class="feature-icon">✍️</div><h3>Reflect without pressure</h3><p>Write naturally about your day. There are no perfect words or scores to chase.</p></article><article class="feature card"><div class="feature-icon">✨</div><h3>AI-powered understanding</h3><p>Emotion analysis and personalised suggestions help you turn awareness into care.</p></article><article class="feature card"><div class="feature-icon">📈</div><h3>See your patterns</h3><p>Gentle mood trends and a calendar make it easier to notice what supports you.</p></article></div></section>
+  </section>
 
-  <!-- ═══ AUTH ═══ -->
-  <div class="card" id="authCard">
-    <div class="tabs">
-      <button id="tabLogin" class="active" onclick="switchTab('login')">Login</button>
-      <button id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
-    </div>
-    <div class="error" id="authError"></div>
-    <input id="nameInput" class="hidden" placeholder="Your name" />
-    <input id="emailInput" type="email" placeholder="Email (demo: demo@moodmentor.ai)" />
-    <input id="passwordInput" type="password" placeholder="Password (demo: demo123)" />
-    <button class="btn" id="authBtn" onclick="doAuth()">Login 💜</button>
-    <button class="link-btn demo-link" onclick="enterDemo()">✨ Explore with demo data (no server needed)</button>
-  </div>
+  <section id="authScreen" class="hidden"><div class="auth-wrap"><aside class="auth-aside"><a class="logo" href="#" onclick="showLanding()"><span class="logo-mark">🧠</span>MoodMentor</a><h1>A little space can change a lot.</h1><p>Build a kinder relationship with your emotions, one private check-in at a time.</p><div class="auth-point">✓ AI-supported reflections</div><div class="auth-point">✓ Personal mood insights</div><div class="auth-point">✓ Your data stays yours</div></aside><div class="auth-form"><button class="back" onclick="showLanding()">← Back to home</button><div class="eyebrow" id="authEyebrow">Welcome back</div><h2 id="authTitle">Welcome back</h2><p id="authSubtitle">Log in to continue your wellbeing journey.</p><div class="form-error" id="authError"></div><div class="field hidden" id="nameField"><label for="nameInput">Your name</label><input id="nameInput" placeholder="e.g. Alex" /></div><div class="field"><label for="emailInput">Email address</label><input id="emailInput" type="email" placeholder="you@example.com" /></div><div class="field"><label for="passwordInput">Password</label><input id="passwordInput" type="password" placeholder="Your password" /></div><button class="btn" id="authBtn" onclick="doAuth()">Log in</button><div class="switch-copy" id="switchCopy">New to MoodMentor? <button onclick="openAuth('signup')">Create an account</button></div><div class="demo">Want to look around first? <button onclick="enterDemo()">Explore with demo data</button></div></div></div></section>
 
-  <!-- ═══ APP SHELL ═══ -->
-  <div id="appShell" class="hidden">
-    <div class="nav">
-      <div class="views">
-        <button id="vJournal" class="active" onclick="showView('journal')">✍️ Journal</button>
-        <button id="vChat" onclick="showView('chat')">💬 Chat</button>
-        <button id="vDashboard" onclick="showView('dashboard')">📊 Dashboard</button>
-      </div>
-      <div class="who">Hi, <b id="userName"></b> 👋 <button class="link-btn" onclick="logout()">Log out</button></div>
-    </div>
+  <section id="workspace" class="hidden"><aside class="sidebar"><a class="logo" href="#"><span class="logo-mark">🧠</span>MoodMentor</a><div class="side-label">Your space</div><button class="side-link active" data-view="dashboard" onclick="showView('dashboard')"><span>⌂</span>Overview</button><button class="side-link" data-view="journal" onclick="showView('journal')"><span>✍</span>Journal</button><button class="side-link" data-view="chat" onclick="showView('chat')"><span>◌</span>Companion chat</button><button class="side-link" data-view="history" onclick="showView('history')"><span>◷</span>Reflection history</button><div class="side-label">Account</div><button class="side-link" data-view="profile" onclick="showView('profile')"><span>⚙</span>Profile</button><div class="side-bottom"><div class="profile-mini"><div class="avatar" id="sideAvatar">M</div><div><b id="sideName">Member</b><small id="sideEmail">Your private space</small></div></div><button class="side-link" onclick="logout()"><span>↪</span>Log out</button></div></aside><main class="main"><header class="topbar"><div><h1 id="pageTitle">Your overview</h1><p id="pageSubtitle">A calm view of how you have been feeling.</p></div><div class="topbar-right"><span class="status" id="serverStatus">● Connected to your wellbeing space</span><button class="btn small" onclick="showView('journal')">New reflection</button></div></header>
+    <nav class="mobile-nav"><button class="active" data-view="dashboard" onclick="showView('dashboard')">⌂<br>Overview</button><button data-view="journal" onclick="showView('journal')">✍<br>Journal</button><button data-view="chat" onclick="showView('chat')">◌<br>Chat</button><button data-view="history" onclick="showView('history')">◷<br>History</button></nav>
+    <section class="view active" id="dashboardView"><div class="metric-grid"><article class="metric card"><span>Current streak</span><strong id="streak">–</strong><small>days of checking in</small></article><article class="metric card"><span>Total reflections</span><strong id="entries">–</strong><small>moments you have made space for</small></article><article class="metric card"><span>Most common mood</span><strong id="topEmotion">–</strong><small>across your reflections</small></article><article class="metric card"><span>Recent direction</span><strong id="trend">–</strong><small id="trendText">your weekly mood trend</small></article></div><div class="dash-grid"><article class="panel card"><h3>How your mood has moved</h3><div class="chart-box"><canvas id="trendChart"></canvas></div></article><article class="panel card"><h3>Emotion mix</h3><div class="chart-box"><canvas id="distChart"></canvas></div></article></div><article class="panel card" style="margin-top:17px"><h3>Recent reflections</h3><div id="recentEntries"></div></article></section>
+    <section class="view" id="journalView"><div class="journal-layout"><article class="panel card"><div class="eyebrow">Private reflection</div><h2 style="margin:8px 0 5px;font-size:1.45rem">How are you, really?</h2><p style="margin:0 0 17px;color:var(--muted);font-size:.88rem">Write freely. MoodMentor will help you make sense of what is there.</p><div class="form-error" id="journalError"></div><textarea class="journal-textarea" id="journalText" maxlength="5000" placeholder="Today, I am feeling..."></textarea><div id="liveMeter" class="live-meter"></div><div class="journal-footer"><span class="char-count" id="charCount">0 / 5000</span><button class="btn" id="analyzeBtn" onclick="analyzeJournal()">Understand this reflection →</button></div></article><article class="panel card" id="resultPanel"><div class="empty" id="resultEmpty"><span class="big">🌱</span>Your insight will appear here after you save a reflection.</div><div id="resultContent" class="hidden"><div class="result-head"><div class="emoji" id="resultEmoji"></div><h2 id="resultEmotion"></h2><p id="resultConfidence"></p></div><div id="emotionBars"></div><div class="insight" id="aiReply"></div><div style="margin-top:18px"><h3 style="margin:0 0 7px">A gentle next step</h3><div id="recommendations"></div></div></div></article></div></section>
+    <section class="view" id="chatView"><article class="chat-panel card"><div class="chat-head"><div><h2>💬 MoodMentor companion</h2><span>A judgement-free space to talk things through.</span></div><button class="btn ghost small" onclick="clearChat()">Clear chat</button></div><div id="chatLog" class="chat-log"></div><div class="chat-input"><input id="chatInput" placeholder="Share what is on your mind..." onkeydown="if(event.key==='Enter')sendChat()" /><button class="btn" id="chatSend" onclick="sendChat()">Send</button></div></article></section>
+    <section class="view" id="historyView"><div class="history-list" id="historyList"></div></section>
+    <section class="view" id="profileView"><div class="profile-grid"><article class="profile-card card"><div class="avatar" id="profileAvatar">M</div><h2 id="profileName">MoodMentor member</h2><p id="profileEmail">Your wellbeing journey</p><button class="btn outline small" style="margin-top:19px" onclick="logout()">Log out</button></article><article class="profile-detail card"><div class="eyebrow">Account</div><h2 style="margin:8px 0 15px;font-size:1.4rem">Your space</h2><div class="detail-row"><span>Privacy</span><b>Personal &amp; private</b></div><div class="detail-row"><span>Reflection history</span><b id="profileEntries">– entries</b></div><div class="detail-row"><span>AI companion</span><b>Available</b></div><p style="color:var(--muted);font-size:.85rem;line-height:1.6;margin-top:20px">MoodMentor uses your reflections only to generate your personal insights, recommendations, and mood trends.</p></article></div></section>
+  <div class="modal-backdrop hidden" id="activityModal"><article class="activity-modal"><button class="modal-close" onclick="closeActivity()">×</button><div class="eyebrow" id="modalType">Wellness activity</div><h2 id="modalTitle"></h2><p id="modalDescription"></p><div id="modalVisual"></div><ul class="detail-steps" id="modalSteps"></ul><div class="modal-footer"><span id="modalDuration"></span><a class="btn small" id="modalLink" target="_blank" rel="noopener">Start activity →</a></div></article></div>
+  </main></section>
 
-    <!-- JOURNAL VIEW -->
-    <div id="journalView">
-      <div class="card">
-        <div class="error" id="journalError"></div>
-        <textarea id="journalText" placeholder="How are you feeling today? Pour your heart out..."></textarea>
-        <div class="live-meter hidden" id="liveMeter"></div>
-        <button class="btn" id="analyzeBtn" onclick="analyze()">Analyze My Mood ✨</button>
-      </div>
-      <div class="card hidden" id="resultCard">
-        <div class="dominant">
-          <div class="emoji" id="domEmoji"></div>
-          <div class="name" id="domName"></div>
-          <div class="conf" id="domConf"></div>
-        </div>
-        <div id="bars"></div>
-        <div class="valence" id="valence"></div>
-        <div class="ai-reply hidden" id="aiReply"></div>
-        <div class="recs hidden" id="recs"><h3>🎯 Recommended for you</h3><div id="recList"></div></div>
-      </div>
-    </div>
-
-    <!-- CHAT VIEW 💬 -->
-    <div id="chatView" class="hidden">
-      <div class="card">
-        <div class="chat-head">
-          <h3>💬 MoodMentor Companion</h3>
-          <button class="link-btn" onclick="clearChat()">🗑️ Clear chat</button>
-        </div>
-        <div class="chat-box" id="chatBox"></div>
-        <div class="chat-input-row">
-          <input id="chatInput" placeholder="Talk to me about anything..." onkeydown="if(event.key==='Enter')sendChat()" />
-          <button class="btn send-btn" id="chatSendBtn" onclick="sendChat()">Send 💜</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- DASHBOARD VIEW -->
-    <div id="dashboardView" class="hidden">
-      <div class="stats">
-        <div class="stat"><div class="big" id="stStreak">–</div><div class="lbl">🔥 Day streak</div></div>
-        <div class="stat"><div class="big" id="stEntries">–</div><div class="lbl">📝 Entries</div></div>
-        <div class="stat"><div class="big" id="stEmotion">–</div><div class="lbl">🎭 Top emotion</div></div>
-        <div class="stat"><div class="big" id="stTrend">–</div><div class="lbl">📈 7-day trend</div></div>
-      </div>
-      <div class="chart-row">
-        <div class="card"><h3>📈 Mood Trend (30 days)</h3><div class="chart-box"><canvas id="trendChart"></canvas></div></div>
-        <div class="card"><h3>🎭 Emotion Mix</h3><div class="chart-box"><canvas id="distChart"></canvas></div></div>
-      </div>
-      <div class="card"><h3>🗓️ Your Mood Calendar</h3>
-        <div class="hm-scroll"><div class="hm-grid" id="heatmapGrid"></div></div>
-        <div class="hm-legend">😟
-          <div class="hm-cell" style="background:#ef4444"></div>
-          <div class="hm-cell" style="background:#fca5a5"></div>
-          <div class="hm-cell" style="background:#d1d5db"></div>
-          <div class="hm-cell" style="background:#a7f3d0"></div>
-          <div class="hm-cell" style="background:#34d399"></div> 😊
-        </div>
-      </div>
-      <div class="card empty hidden" id="emptyDash">
-        <span class="emo">🌱</span>No journal entries yet — write your first one to unlock your dashboard!
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-const API = "http://127.0.0.1:8000";
-let token = null, mode = "login", demoMode = false, chatLoaded = false;
-let chTrend = null, chDist = null, meterTimer = null;
-
-const META = {
-  joy:{emoji:"😊",color:"#f59e0b"}, sadness:{emoji:"😢",color:"#3b82f6"},
-  anger:{emoji:"😠",color:"#ef4444"}, fear:{emoji:"😨",color:"#8b5cf6"},
-  surprise:{emoji:"😲",color:"#f97316"}, disgust:{emoji:"🤢",color:"#22c55e"},
-  neutral:{emoji:"😐",color:"#94a3b8"},
-};
-const REC_EMOJI = { breathing:"🌬️", journaling:"✍️", music:"🎵", nature:"🌿", social:"🤝", physical:"🏃", mindfulness:"🧘", meditation:"🧘", gratitude:"🙏" };
-const DEMO_REPLIES = {
-  joy:"It's lovely to feel the happiness in your words — moments like this deserve to be savored. Keep collecting them! 💛",
-  sadness:"Thank you for being this honest. What you feel is valid, and you don't have to carry it alone. Be gentle with yourself today. 💙",
-  anger:"Your anger makes sense — it's a signal something felt unfair. Writing it down is already a healthy step. 🧡",
-  fear:"It takes courage to name anxious thoughts. Feelings of fear aren't facts about the future — one step at a time. 💚",
-  surprise:"Something unexpected happened — writing it down is a great way to make sense of it. 💜",
-  disgust:"That reaction is worth listening to — it often points to a value that matters to you. 🤎",
-  neutral:"Thanks for checking in with yourself today — even ordinary days deserve attention. ✨",
-};
-const DEMO_CHAT = [
-  "I'm here and listening 💚 Tell me more about that?",
-  "That sounds really significant. How long has this been on your mind?",
-  "I hear you. What feels like the hardest part right now?",
-  "Thanks for opening up — that takes courage. What would help you feel even 1% better today?",
-];
-
-/* ─────────── helpers ─────────── */
-const $ = id => document.getElementById(id);
-function showError(id,msg){ const e=$(id); e.textContent=msg; e.style.display=msg?"block":"none"; }
-async function api(path, method="GET", body=null){
-  const res = await fetch(API+path,{ method, headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` }, body: body?JSON.stringify(body):null });
-  if(res.status===204) return null;
-  const data = await res.json();
-  if(!res.ok) throw new Error(data.detail||"Request failed");
-  return data;
-}
-
-/* ─────────── auth ─────────── */
-function switchTab(m){
-  mode=m;
-  $("tabLogin").classList.toggle("active",m==="login");
-  $("tabSignup").classList.toggle("active",m==="signup");
-  $("nameInput").classList.toggle("hidden",m==="login");
-  $("authBtn").textContent = m==="login" ? "Login 💜" : "Create Account 🌱";
-}
-async function doAuth(){
-  showError("authError","");
-  const body = mode==="login"
-    ? { email:$("emailInput").value.trim(), password:$("passwordInput").value }
-    : { name:$("nameInput").value.trim(), email:$("emailInput").value.trim(), password:$("passwordInput").value };
-  try{
-    const res = await fetch(`${API}/auth/${mode}`,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.detail||"Authentication failed");
-    token = data.access_token;
-    enterApp(data.user.name);
-  }catch(e){ showError("authError", e.message+" — is uvicorn running?"); }
-}
-function enterDemo(){ demoMode=true; enterApp("Explorer"); }
-function enterApp(name){
-  $("userName").textContent = name;
-  $("authCard").classList.add("hidden");
-  $("appShell").classList.remove("hidden");
-}
-function logout(){ location.reload(); }
-function showView(v){
-  $("journalView").classList.toggle("hidden", v!=="journal");
-  $("chatView").classList.toggle("hidden", v!=="chat");
-  $("dashboardView").classList.toggle("hidden", v!=="dashboard");
-  $("vJournal").classList.toggle("active", v==="journal");
-  $("vChat").classList.toggle("active", v==="chat");
-  $("vDashboard").classList.toggle("active", v==="dashboard");
-  if(v==="dashboard") loadDashboard();
-  if(v==="chat") loadChat();
-}
-
-/* ─────────── ⚡ live emotion meter ─────────── */
-$("journalText").addEventListener("input", () => {
-  clearTimeout(meterTimer);
-  const text = $("journalText").value.trim();
-  if(text.length < 20){ $("liveMeter").classList.add("hidden"); return; }
-  meterTimer = setTimeout(() => updateLiveMeter(text), 700);  // debounce
-});
-async function updateLiveMeter(text){
-  const meter = $("liveMeter");
-  try{
-    const data = demoMode ? demoAnalyze(text) : await api("/analyze","POST",{text});
-    const top3 = Object.entries(data.emotions).slice(0,3);
-    meter.innerHTML = `<span class="lm-title">⚡ Live:</span>` + top3.map(([e,s])=>{
-      const m = META[e]||META.neutral;
-      return `<span class="lm-chip" style="border-color:${m.color}">${m.emoji} ${e} ${(s*100).toFixed(0)}%</span>`;
-    }).join("");
-    meter.classList.remove("hidden");
-  }catch(e){ /* meter is a bonus — fail silently */ }
-}
-
-/* ─────────── journal ─────────── */
-async function analyze(){
-  showError("journalError","");
-  const text = $("journalText").value.trim();
-  if(text.length<3) return showError("journalError","Write a little more first 💭");
-  const btn=$("analyzeBtn"); btn.disabled=true; btn.textContent="⏳ Reading your emotions...";
-  try{
-    const data = demoMode ? demoAnalyze(text) : await api("/journal","POST",{text});
-    renderResult(data);
-  }catch(e){ showError("journalError", e.message); }
-  finally{ btn.disabled=false; btn.textContent="Analyze My Mood ✨"; }
-}
-function renderResult(data){
-  const meta = META[data.dominant_emotion]||META.neutral;
-  $("domEmoji").textContent = meta.emoji;
-  $("domName").textContent = data.dominant_emotion;
-  $("domName").style.color = meta.color;
-  $("domConf").textContent = `${(data.confidence*100).toFixed(0)}% confidence`;
-  const bars=$("bars"); bars.innerHTML="";
-  for(const [emotion,score] of Object.entries(data.emotions)){
-    const m=META[emotion]||META.neutral;
-    bars.innerHTML += `<div class="bar-row"><div class="bar-label">${m.emoji} ${emotion}</div><div class="bar-track"><div class="bar-fill" data-w="${score*100}" style="background:${m.color}"></div></div><div class="bar-pct">${(score*100).toFixed(0)}%</div></div>`;
-  }
-  requestAnimationFrame(()=>setTimeout(()=>document.querySelectorAll(".bar-fill").forEach(b=>b.style.width=b.dataset.w+"%"),50));
-  const v=data.valence_score;
-  $("valence").textContent = `Overall tone: ${v>0.2?"positive 🌤️":v<-0.2?"heavy 🌧️":"balanced ⛅"} (valence ${v})`;
-  const reply=$("aiReply");
-  if(data.ai_reply){ reply.innerHTML="<b>🤖 MoodMentor says:</b> "+data.ai_reply; reply.classList.remove("hidden"); }
-  else reply.classList.add("hidden");
-  const recs=$("recs"), list=$("recList");
-  if(Array.isArray(data.recommendations) && data.recommendations.length){
-    list.innerHTML="";
-    data.recommendations.forEach(r=>{
-      const a=r.activity;
-      list.innerHTML += `<div class="rec-card"><div class="rec-emoji">${REC_EMOJI[a.type]||"💡"}</div>
-        <div class="rec-body"><div class="rec-title">${a.title}</div><div class="rec-desc">${a.description}</div>
-        <div class="rec-meta">⏱️ ${a.duration_minutes} min · ${a.type}</div></div>
-        <div class="rec-rate"><button onclick="rateRec(${r.id},1,this)">👍</button><button onclick="rateRec(${r.id},-1,this)">👎</button></div></div>`;
-    });
-    recs.classList.remove("hidden");
-  } else recs.classList.add("hidden");
-  $("resultCard").classList.remove("hidden");
-  $("resultCard").scrollIntoView({behavior:"smooth"});
-}
-async function rateRec(id,rating,btn){
-  btn.parentElement.querySelectorAll("button").forEach(b=>b.classList.remove("picked"));
-  btn.classList.add("picked");
-  if(demoMode) return;
-  try{ await api(`/recommendations/${id}/rate`,"POST",{rating}); }catch(e){}
-}
-
-/* ─────────── 💬 chat companion ─────────── */
-function addMsg(role, text, emotion=null, crisis=false){
-  const box=$("chatBox");
-  const div=document.createElement("div");
-  div.className = "msg " + (role==="user" ? "user" : crisis ? "bot crisis" : "bot");
-  div.textContent = text;
-  if(role==="user" && emotion){
-    const m = META[emotion]||META.neutral;
-    const meta=document.createElement("div");
-    meta.className="meta"; meta.textContent=`${m.emoji} detected: ${emotion}`;
-    div.appendChild(meta);
-  }
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
-}
-function showTyping(){
-  const t=document.createElement("div");
-  t.id="typingBubble"; t.className="msg bot typing";
-  t.innerHTML="<span></span><span></span><span></span>";
-  $("chatBox").appendChild(t);
-  $("chatBox").scrollTop = $("chatBox").scrollHeight;
-}
-function hideTyping(){ const t=$("typingBubble"); if(t) t.remove(); }
-
-async function loadChat(){
-  if(chatLoaded) return;
-  const box=$("chatBox"); box.innerHTML="";
-  if(demoMode){
-    addMsg("assistant","Hi! I'm your MoodMentor companion 💚 (Demo mode — my replies are pre-written, but the real AI works with the server!) How are you feeling today?");
-    chatLoaded=true; return;
-  }
-  try{
-    const msgs = await api("/chat/history?limit=50");
-    if(!msgs.length){
-      addMsg("assistant","Hi! I'm your MoodMentor companion 💚 I keep track of your journal moods, and I'm here whenever you want to talk. How are you feeling right now?");
-    } else {
-      msgs.forEach(m => m.role==="user" ? addMsg("user",m.text,m.emotion) : addMsg("assistant",m.text));
-    }
-    chatLoaded=true;
-  }catch(e){ addMsg("assistant","⚠️ Couldn't load chat — is the server running?"); }
-}
-
-async function sendChat(){
-  const inp=$("chatInput"), text=inp.value.trim();
-  if(!text) return;
-  inp.value="";
-  addMsg("user",text);
-  showTyping();
-  try{
-    const data = demoMode ? demoChat(text) : await api("/chat","POST",{text});
-    hideTyping();
-    // tag the user's bubble with the detected emotion
-    const emo = data.user_message && data.user_message.emotion;
-    if(emo){
-      const bubbles=$("chatBox").querySelectorAll(".msg.user");
-      const last=bubbles[bubbles.length-1];
-      if(last && !last.querySelector(".meta")){
-        const m=META[emo]||META.neutral;
-        const meta=document.createElement("div");
-        meta.className="meta"; meta.textContent=`${m.emoji} detected: ${emo}`;
-        last.appendChild(meta);
-      }
-    }
-    addMsg("assistant", data.reply.text, null, !!data.crisis);
-  }catch(e){ hideTyping(); addMsg("assistant","⚠️ "+e.message); }
-}
-
-async function clearChat(){
-  if(!demoMode){ try{ await api("/chat/history","DELETE"); }catch(e){} }
-  chatLoaded=false; loadChat();
-}
-
-/* ─────────── dashboard ─────────── */
-async function loadDashboard(){
-  try{
-    let summary, daily, dist, heat;
-    if(demoMode){ ({summary,daily,dist,heat}=genDemoData()); }
-    else{
-      [summary,daily,dist,heat] = await Promise.all([
-        api("/analytics/summary"), api("/analytics/trends?days=30"),
-        api("/analytics/distribution?days=30"), api("/analytics/heatmap?days=182") ]);
-    }
-    renderStats(summary); renderCharts(daily,dist); renderHeatmap(heat);
-    $("emptyDash").classList.toggle("hidden", summary.total_entries>0);
-  }catch(e){ console.error(e); }
-}
-function renderStats(s){
-  $("stStreak").textContent = s.streak_days;
-  $("stEntries").textContent = s.total_entries;
-  const me = s.most_frequent_emotion;
-  $("stEmotion").textContent = me ? META[me].emoji : "–";
-  const t = s.trend;
-  $("stTrend").textContent = t==="improving"?"↗️":t==="declining"?"↘️":"➡️";
-  $("stTrend").title = t;
-}
-function renderCharts(daily,dist){
-  if(chTrend) chTrend.destroy(); if(chDist) chDist.destroy();
-  chTrend = new Chart($("trendChart"),{ type:"line",
-    data:{ labels:daily.map(d=>d.date.slice(5)), datasets:[{ data:daily.map(d=>d.avg_valence), borderColor:"#7c6cf0", backgroundColor:"rgba(124,108,240,.15)", fill:true, tension:.4, pointRadius:3 }]},
-    options:{ maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{min:-1,max:1} } } });
-  const labels = Object.keys(dist.dominant_counts);
-  chDist = new Chart($("distChart"),{ type:"doughnut",
-    data:{ labels:labels.map(l=>`${META[l].emoji} ${l}`), datasets:[{ data:labels.map(l=>dist.dominant_counts[l]), backgroundColor:labels.map(l=>META[l].color), borderWidth:2, borderColor:"#fff" }]},
-    options:{ maintainAspectRatio:false, plugins:{legend:{position:"bottom"}} } });
-}
-function valenceColor(v){
-  if(v>=0.5) return "#34d399"; if(v>=0.15) return "#a7f3d0";
-  if(v>-0.15) return "#d1d5db"; if(v>-0.5) return "#fca5a5";
-  return "#ef4444";
-}
-function renderHeatmap(daily){
-  const map={}; daily.forEach(d=>map[d.date]=d);
-  const grid=$("heatmapGrid"); grid.innerHTML="";
-  const WEEKS=26, end=new Date(), start=new Date();
-  start.setDate(end.getDate()-(WEEKS*7-1));
-  start.setDate(start.getDate()-start.getDay());
-  const totalDays=Math.floor((end-start)/86400000)+1;
-  const weeks=Math.ceil(totalDays/7);
-  for(let w=0; w<weeks; w++){
-    const col=document.createElement("div"); col.className="hm-col";
-    for(let r=0; r<7; r++){
-      const d=new Date(start); d.setDate(start.getDate()+w*7+r);
-      const cell=document.createElement("div"); cell.className="hm-cell";
-      if(d<=end){
-        const key=d.toISOString().slice(0,10), rec=map[key];
-        if(rec){ cell.style.background=valenceColor(rec.avg_valence);
-          cell.title=`${key}\n${META[rec.dominant_emotion].emoji} ${rec.dominant_emotion} · valence ${rec.avg_valence} · ${rec.entries} entr${rec.entries>1?"ies":"y"}`;
-        } else cell.title=`${key}\nNo entry`;
-      } else cell.style.visibility="hidden";
-      col.appendChild(cell);
-    }
-    grid.appendChild(col);
-  }
-}
-
-/* ─────────── demo mode (no server needed) ─────────── */
-function demoAnalyze(text){
-  const t=text.toLowerCase(), has=(...ws)=>ws.some(w=>t.includes(w));
-  let dom="neutral";
-  if(has("happy","excit","great","amazing","love","promot","won","proud")) dom="joy";
-  else if(has("sad","alone","lonely","cry","depress","empty","hopeless")) dom="sadness";
-  else if(has("angry","furious","annoy","hate","unfair","frustrat")) dom="anger";
-  else if(has("worr","anxi","stress","afraid","scared","nervous","deadline","exam","sleep")) dom="fear";
-  else if(has("surpris","shock","unexpected","wow","suddenly")) dom="surprise";
-  else if(has("disgust","gross","sick of")) dom="disgust";
-  const emotions={}; let remaining=1;
-  const domScore=0.5+Math.random()*0.3; emotions[dom]=domScore; remaining-=domScore;
-  const others=Object.keys(META).filter(e=>e!==dom);
-  others.forEach((e,i)=>{ const s=i===others.length-1?Math.max(.005,remaining):remaining*Math.random()*.4; emotions[e]=+s.toFixed(3); remaining-=s; });
-  const pos=(emotions.joy||0)+.5*(emotions.surprise||0), neg=(emotions.sadness||0)+(emotions.anger||0)+(emotions.fear||0)+(emotions.disgust||0);
-  return { emotions, dominant_emotion:dom, confidence:emotions[dom],
-    valence_score:+Math.max(-1,Math.min(1,pos-neg)).toFixed(3),
-    ai_reply:DEMO_REPLIES[dom], recommendations:[] };
-}
-function demoChat(text){
-  const a = demoAnalyze(text);
-  const reply = DEMO_CHAT[Math.floor(Math.random()*DEMO_CHAT.length)];
-  return { user_message:{ emotion:a.dominant_emotion }, reply:{ text:reply }, crisis:false };
-}
-function genDemoData(){
-  const daily=[]; let v=0.1;
-  for(let i=181;i>=0;i--){
-    if(Math.random()<0.28) continue;
-    v=Math.max(-1,Math.min(1,v+(Math.random()-0.48)*0.45));
-    const d=new Date(); d.setDate(d.getDate()-i);
-    const dom = v>0.3?"joy":v>0.05?"neutral":v>-0.3?"fear":v>-0.6?"sadness":"anger";
-    daily.push({ date:d.toISOString().slice(0,10), avg_valence:+v.toFixed(2), dominant_emotion:dom, entries:1 });
-  }
-  const counts={}; daily.forEach(d=>counts[d.dominant_emotion]=(counts[d.dominant_emotion]||0)+1);
-  const top=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
-  const last7=daily.slice(-7), prev7=daily.slice(-14,-7);
-  const avg=a=>a.length?a.reduce((s,x)=>s+x.avg_valence,0)/a.length:0;
-  const diff=avg(last7)-avg(prev7);
-  return { daily, heat:daily, dist:{ dominant_counts:counts },
-    summary:{ total_entries:daily.length, streak_days:3, most_frequent_emotion:top?top[0]:null,
-      avg_valence_all_time:+avg(daily).toFixed(2), recent_avg_valence:+avg(last7).toFixed(2),
-      previous_avg_valence:+avg(prev7).toFixed(2),
-      trend: diff>0.05?"improving":diff<-0.05?"declining":"steady" } };
-}
-</script>
+  <script>
+    const API=window.MOODMENTOR_API_URL||"http://127.0.0.1:8000", SESSION_KEY="moodmentor-session";
+    const $=id=>document.getElementById(id), META={admiration:['🤍','#d58aaf'],amusement:['😄','#f5a623'],anger:['😠','#ea5762'],annoyance:['😒','#d97745'],approval:['👍','#45a98a'],caring:['💚','#31a982'],confusion:['😕','#7d85b4'],curiosity:['🧐','#588fe5'],desire:['✨','#c173d8'],disappointment:['😞','#6285ca'],disapproval:['🙁','#b0696b'],disgust:['🤢','#42b989'],embarrassment:['😳','#d6788a'],excitement:['🤩','#f48645'],fear:['😰','#8b6ee7'],gratitude:['🙏','#dc9f38'],grief:['💙','#526eb3'],joy:['😊','#f5a623'],love:['🥰','#e66891'],nervousness:['😟','#8b6ee7'],optimism:['🌤️','#36a979'],pride:['🌟','#d99b30'],realization:['💡','#4a9bd8'],relief:['😌','#3ea987'],remorse:['😔','#8a799f'],sadness:['😢','#4687e7'],surprise:['😲','#f48645'],neutral:['😐','#97a0b2']};
+    let mode='login',token=null,user=null,demo=false,trendChart=null,distChart=null,chatLoaded=false,meterTimer=null,demoHistory=[],currentRecommendations=[];
+    const pageMeta={dashboard:['Your overview','A calm view of how you have been feeling.'],journal:['Your journal','A private space to name what is on your mind.'],chat:['Companion chat','Talk things through, one message at a time.'],history:['Reflection history','Return to your past check-ins whenever you need to.'],profile:['Your profile','The details of your MoodMentor space.']};
+    function showLanding(){['landing','authScreen','workspace'].forEach(id=>$(id).classList.toggle('hidden',id!=='landing'))}
+    function openAuth(next){mode=next;$('landing').classList.add('hidden');$('workspace').classList.add('hidden');$('authScreen').classList.remove('hidden');$('nameField').classList.toggle('hidden',mode==='login');$('authEyebrow').textContent=mode==='login'?'Welcome back':'Start your journey';$('authTitle').textContent=mode==='login'?'Welcome back':'Create your account';$('authSubtitle').textContent=mode==='login'?'Log in to continue your wellbeing journey.':'A few details and your private space is ready.';$('authBtn').textContent=mode==='login'?'Log in':'Create account';$('switchCopy').innerHTML=mode==='login'?'New to MoodMentor? <button onclick="openAuth(\'signup\')">Create an account</button>':'Already have an account? <button onclick="openAuth(\'login\')">Log in</button>';showError('authError','')}
+    function showError(id,text){const el=$(id);el.textContent=text;el.style.display=text?'block':'none'}
+    async function request(path,method='GET',body=null){const res=await fetch(API+path,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`}:{})},body:body?JSON.stringify(body):null});if(res.status===204)return null;const data=await res.json();if(!res.ok)throw Error(data.detail||'Request failed');return data}
+    async function doAuth(){const body=mode==='login'?{email:$('emailInput').value.trim(),password:$('passwordInput').value}:{name:$('nameInput').value.trim(),email:$('emailInput').value.trim(),password:$('passwordInput').value};if(!body.email||!body.password||(mode==='signup'&&!body.name))return showError('authError','Please complete all fields.');const btn=$('authBtn');btn.disabled=true;btn.textContent='Please wait…';try{const res=await fetch(`${API}/auth/${mode}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),data=await res.json();if(!res.ok)throw Error(data.detail||'Authentication failed');token=data.access_token;user=data.user;localStorage.setItem(SESSION_KEY,JSON.stringify({token,user}));enterWorkspace()}catch(e){showError('authError',e.message+' — is the FastAPI server running?')}finally{btn.disabled=false;btn.textContent=mode==='login'?'Log in':'Create account'}}
+    function enterDemo(){demo=true;user={name:'Explorer',email:'demo@moodmentor.ai'};enterWorkspace()}
+    function enterWorkspace(){['landing','authScreen'].forEach(id=>$(id).classList.add('hidden'));$('workspace').classList.remove('hidden');const initial=user.name.trim().charAt(0).toUpperCase();['sideAvatar','profileAvatar'].forEach(id=>$(id).textContent=initial);$('sideName').textContent=user.name;$('sideEmail').textContent=user.email;$('profileName').textContent=user.name;$('profileEmail').textContent=user.email;showView('dashboard')}
+    function logout(){localStorage.removeItem(SESSION_KEY);location.reload()}
+    function showView(view){document.querySelectorAll('.view').forEach(el=>el.classList.toggle('active',el.id===view+'View'));document.querySelectorAll('[data-view]').forEach(el=>el.classList.toggle('active',el.dataset.view===view));$('pageTitle').textContent=pageMeta[view][0];$('pageSubtitle').textContent=pageMeta[view][1];if(view==='dashboard')loadDashboard();if(view==='history')loadHistory();if(view==='chat')loadChat();if(view==='profile')loadProfile();window.scrollTo({top:0,behavior:'smooth'})}
+    function emoji(e){return(META[e]||META.neutral)[0]} function color(e){return(META[e]||META.neutral)[1]}
+    function setCharts(daily,dist){if(trendChart)trendChart.destroy();if(distChart)distChart.destroy();trendChart=new Chart($('trendChart'),{type:'line',data:{labels:daily.map(x=>x.date.slice(5)),datasets:[{data:daily.map(x=>x.avg_valence),borderColor:'#6956e8',backgroundColor:'#6956e822',fill:true,tension:.42,pointRadius:3}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:-1,max:1,grid:{color:'#eef0f6'},ticks:{font:{size:10}},},x:{grid:{display:false},ticks:{font:{size:10}}}}}});const labels=Object.keys(dist.dominant_counts||{});distChart=new Chart($('distChart'),{type:'doughnut',data:{labels:labels.map(x=>emoji(x)+' '+x),datasets:[{data:labels.map(x=>dist.dominant_counts[x]),backgroundColor:labels.map(color),borderWidth:3,borderColor:'#fff'}]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:11}}}}}})}
+    async function loadDashboard(){try{let summary,daily,dist,history;if(demo){({summary,daily,dist,history}=demoData())}else{[summary,daily,dist,history]=await Promise.all([request('/analytics/summary'),request('/analytics/trends?days=30'),request('/analytics/distribution?days=30'),request('/journal/history?limit=3')])}$('streak').textContent=summary.streak_days;$('entries').textContent=summary.total_entries;$('topEmotion').textContent=summary.most_frequent_emotion?emoji(summary.most_frequent_emotion):'–';$('trend').textContent=summary.trend==='improving'?'↗':summary.trend==='declining'?'↘':'→';$('trendText').textContent=summary.trend==='improving'?'moving upward recently':summary.trend==='declining'?'feeling heavier recently':'holding steady recently';$('profileEntries').textContent=summary.total_entries+' entries';setCharts(daily,dist);renderRecent(history)}catch(e){$('serverStatus').textContent='● Could not reach API';$('serverStatus').style.color='#bd3544'}}
+    function renderRecent(items){const box=$('recentEntries');if(!items.length){box.innerHTML='<div class="empty"><span class="big">🌱</span>Your first reflection will appear here.</div>';return}box.innerHTML=items.map(x=>`<div class="entry-card"><div class="entry-emoji">${emoji(x.dominant_emotion)}</div><div><b>${x.dominant_emotion} · ${(x.confidence*100).toFixed(0)}% confidence</b><p>${escapeHtml(x.text).slice(0,135)}${x.text.length>135?'…':''}</p><time>${formatDate(x.created_at)}</time></div></div>`).join('')}
+    $('journalText').addEventListener('input',()=>{const text=$('journalText').value;$('charCount').textContent=text.length+' / 5000';clearTimeout(meterTimer);if(text.trim().length<20){$('liveMeter').innerHTML='';return}meterTimer=setTimeout(()=>liveAnalyze(text),650)});
+    async function liveAnalyze(text){try{const data=demo?demoAnalyze(text):await request('/analyze','POST',{text});$('liveMeter').innerHTML=Object.entries(data.emotions).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([e,n])=>`<span class="chip">${emoji(e)} ${e} ${(n*100).toFixed(0)}%</span>`).join('')}catch(e){}}
+    async function analyzeJournal(){const text=$('journalText').value.trim();if(text.length<3)return showError('journalError','Write a little more first.');showError('journalError','');const btn=$('analyzeBtn');btn.disabled=true;btn.textContent='Understanding…';try{const data=demo?demoJournal(text):await request('/journal','POST',{text});if(demo)demoHistory.unshift(data);renderResult(data);$('journalText').value='';$('charCount').textContent='0 / 5000';$('liveMeter').innerHTML=''}catch(e){showError('journalError',e.message)}finally{btn.disabled=false;btn.textContent='Understand this reflection →'}}
+    function renderResult(data){$('resultEmpty').classList.add('hidden');$('resultContent').classList.remove('hidden');$('resultEmoji').textContent=emoji(data.dominant_emotion);$('resultEmotion').textContent=data.dominant_emotion;$('resultEmotion').style.color=color(data.dominant_emotion);$('resultConfidence').textContent=(data.confidence*100).toFixed(0)+'% confidence in this feeling';$('emotionBars').innerHTML=Object.entries(data.emotions).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([e,n])=>`<div class="emotion-row"><span>${emoji(e)} ${e}</span><div class="track"><div class="fill" style="background:${color(e)}" data-width="${n*100}"></div></div><span>${(n*100).toFixed(0)}%</span></div>`).join('');setTimeout(()=>document.querySelectorAll('.fill').forEach(el=>el.style.width=el.dataset.width+'%'),30);$('aiReply').innerHTML='<b>✦ MoodMentor says</b><br>'+escapeHtml(data.ai_reply||'Thank you for taking a moment to check in with yourself.');currentRecommendations=data.recommendations||[];$('recommendations').innerHTML=currentRecommendations.map((r,i)=>`<div class="recommendation"><div>${activityIcon(r.activity.type)}</div><div><b>${escapeHtml(r.activity.title)}</b><p>${escapeHtml(r.activity.description)} · ${r.activity.duration_minutes} min</p><button class="activity-action" onclick="showActivity(${i})">View guide &amp; start →</button></div><div class="rate"><button onclick="rateRec(${r.id},1,this)">👍</button><button onclick="rateRec(${r.id},-1,this)">👎</button></div></div>`).join('')||'<p style="color:var(--muted);font-size:.86rem">A few slow breaths or a short walk may help you reconnect with the present.</p>'}
+    function activityIcon(type){return({breathing:'🌬️',journaling:'✍️',music:'🎵',nature:'🌿',social:'🤝',physical:'🏃',mindfulness:'🧘',meditation:'🧘',game:'🎮',gratitude:'🙏'})[type]||'💡'}function activityLink(type,title){const q=encodeURIComponent(title);if(type==='music')return['https://open.spotify.com/search/'+q,'Open music'];if(['breathing','meditation','mindfulness'].includes(type))return['https://www.youtube.com/results?search_query='+encodeURIComponent(title+' guided practice'),'Play guided practice'];if(type==='physical')return['https://www.youtube.com/results?search_query='+encodeURIComponent(title+' beginner workout'),'Start movement'];if(type==='nature')return['https://www.google.com/maps/search/park+near+me','Find a nearby green space'];if(type==='game')return['#','Play focus game'];if(type==='social')return['sms:?body='+encodeURIComponent('Hi, I was thinking of you. Would you like to talk?'),'Send a message'];return['#journalView','Open journal']}function showActivity(index){const activity=currentRecommendations[index].activity;const[typeUrl,label]=activityLink(activity.type,activity.title);$('modalType').textContent=activityIcon(activity.type)+' '+activity.type+' activity';$('modalTitle').textContent=activity.title;$('modalDescription').textContent=activity.description;$('modalDuration').textContent='⏱ '+activity.duration_minutes+' minutes';$('modalSteps').innerHTML=escapeHtml(activity.content).split(/(?<=[.!?])\s+/).filter(Boolean).map(x=>'<li>'+x+'</li>').join('');$('modalVisual').innerHTML=activity.type==='breathing'?'<div class="breathing-visual"><div>Inhale<b>4s</b></div><div>Hold<b>4s</b></div><div>Exhale<b>4s</b></div><div>Hold<b>4s</b></div></div>':'';const link=$('modalLink');link.href=typeUrl;link.textContent=label+' →';link.target=typeUrl.startsWith('#')?'_self':'_blank';link.onclick=activity.type==='journaling'?()=>{closeActivity();showView('journal')}:activity.type==='game'?(event=>{event.preventDefault();startFocusGame()}):null;$('activityModal').classList.remove('hidden')}function closeActivity(){$('activityModal').classList.add('hidden')}function startFocusGame(){const colors=[['purple','#6956e8'],['mint','#31c59b'],['sunshine','#f5a623'],['coral','#e55b67'],['sky','#4687e7']],target=colors[Math.floor(Math.random()*colors.length)];window.focusTarget=target[0];$('modalVisual').innerHTML=`<div class="focus-game"><p>Focus reset: tap <b>${target[0]}</b></p><div class="color-options">${[...colors].sort(()=>Math.random()-.5).map(([name,hex])=>`<button aria-label="${name}" style="background:${hex}" onclick="playFocusColor('${name}')"></button>`).join('')}</div><p class="game-result" id="gameResult">Take one slow breath, then choose.</p></div>`}function playFocusColor(choice){const result=$('gameResult');if(choice===window.focusTarget){result.textContent='Nice! You found it. One small moment of focused attention can reset a busy mind.';result.style.color='#168467'}else{result.textContent='Almost. Pause, breathe, and try again.';result.style.color='#b6533d'}}async function rateRec(id,rating,button){button.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('picked'));button.classList.add('picked');if(!demo)try{await request('/recommendations/'+id+'/rate','POST',{rating})}catch(e){}}
+    function addMessage(role,text,emotion=null,crisis=false){const el=document.createElement('div');el.className='message '+(role==='user'?'user':crisis?'bot crisis':'bot');el.textContent=text;if(emotion){const meta=document.createElement('small');meta.textContent=emoji(emotion)+' detected: '+emotion;el.appendChild(meta)};$('chatLog').appendChild(el);$('chatLog').scrollTop=$('chatLog').scrollHeight;return el}async function loadChat(){if(chatLoaded)return;$('chatLog').innerHTML='';try{const messages=demo?[]:await request('/chat/history?limit=50');if(messages.length)messages.forEach(m=>addMessage(m.role==='user'?'user':'assistant',m.text,m.emotion));else addMessage('assistant','Hi, I’m here to listen. How are you feeling right now?');chatLoaded=true}catch(e){addMessage('assistant','I could not load our chat yet. Please check that the API is running.')}}async function sendChat(){const input=$('chatInput'),text=input.value.trim();if(!text)return;input.value='';const userBubble=addMessage('user',text);const typing=addMessage('assistant','MoodMentor is thinking…');typing.classList.add('typing');try{const data=demo?demoChat(text):await request('/chat','POST',{text});typing.remove();if(data.user_message.emotion){const meta=document.createElement('small');meta.textContent=emoji(data.user_message.emotion)+' detected: '+data.user_message.emotion;userBubble.appendChild(meta)}addMessage('assistant',data.reply.text,null,data.crisis)}catch(e){typing.textContent='I could not send that message: '+e.message;typing.classList.remove('typing')}}async function clearChat(){if(!demo)try{await request('/chat/history','DELETE')}catch(e){}chatLoaded=false;loadChat()}
+    async function loadHistory(){const box=$('historyList');box.innerHTML='<div class="empty">Loading your reflections…</div>';try{const items=demo?demoHistory:await request('/journal/history?limit=50');if(!items.length){box.innerHTML='<div class="card empty"><span class="big">📖</span>Your reflection history will grow here.</div>';return}box.innerHTML=items.map(x=>`<article class="history-item card"><div class="history-item-top"><h3>${emoji(x.dominant_emotion)} ${x.dominant_emotion}</h3><time>${formatDate(x.created_at)}</time></div><p>${escapeHtml(x.text)}</p><div class="history-meta"><span>${(x.confidence*100).toFixed(0)}% confidence · valence ${x.valence_score}</span><button class="btn danger small" onclick="deleteEntry(${x.id})">Delete</button></div></article>`).join('')}catch(e){box.innerHTML='<div class="card empty">Could not load reflection history. Check the API connection.</div>'}}async function deleteEntry(id){if(demo){demoHistory=demoHistory.filter(x=>x.id!==id);loadHistory();return}if(confirm('Delete this reflection permanently?')){try{await request('/journal/'+id,'DELETE');loadHistory()}catch(e){alert(e.message)}}}function loadProfile(){loadDashboard()}
+    function formatDate(value){try{return new Date(value).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}catch(e){return value}}function escapeHtml(value){const d=document.createElement('div');d.textContent=value||'';return d.innerHTML}
+    function demoAnalyze(text){const t=text.toLowerCase(),has=(...w)=>w.some(x=>t.includes(x));let d=has('happy','great','love','proud')?'joy':has('sad','alone','lonely','cry')?'sadness':has('angry','annoy','unfair')?'anger':has('stress','anx','worry','afraid','deadline')?'fear':'neutral';const emotions={joy:.08,sadness:.08,anger:.06,fear:.1,surprise:.05,disgust:.03,neutral:.1};emotions[d]=.6;return{emotions,dominant_emotion:d,confidence:.6,valence_score:d==='joy'?.72:d==='sadness'?-0.56:d==='fear'?-0.35:0}}function demoJournal(text){const a=demoAnalyze(text);return{...a,id:Date.now(),text,created_at:new Date().toISOString(),ai_reply:'Thank you for sharing that. Naming how you feel is a meaningful act of self-care—consider one small, gentle thing that could support you today.',recommendations:[]}}function demoChat(text){const a=demoAnalyze(text);return{user_message:{emotion:a.dominant_emotion},reply:{text:'I hear you. Thank you for trusting me with that. What feels like the most important part of this for you right now?'},crisis:false}}function demoData(){const history=demoHistory.length?demoHistory:[demoJournal('I had a busy day, but I am glad I took a moment to slow down.')];const daily=Array.from({length:12},(_,i)=>({date:new Date(Date.now()-(11-i)*864e5).toISOString().slice(0,10),avg_valence:Math.sin(i*.7)*.35+.15,dominant_emotion:i%4===0?'joy':i%3===0?'fear':'neutral'}));return{history, daily,dist:{dominant_counts:{joy:5,neutral:4,fear:3}},summary:{streak_days:3,total_entries:history.length,most_frequent_emotion:'joy',trend:'improving'}}}
+    try{const saved=JSON.parse(localStorage.getItem(SESSION_KEY));if(saved?.token&&saved?.user){token=saved.token;user=saved.user;enterWorkspace()}}catch(e){localStorage.removeItem(SESSION_KEY)}
+  </script>
 </body>
 </html>

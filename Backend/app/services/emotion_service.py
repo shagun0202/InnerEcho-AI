@@ -1,24 +1,35 @@
 # ══════════════════════════════════════════════════════════════
 # FILE: backend/app/services/emotion_service.py
 # 🧠 Emotion detection using a pre-trained transformer model
-# Model: j-hartmann/emotion-english-distilroberta-base
-# Detects 7 emotions: anger, disgust, fear, joy, neutral, sadness, surprise
+# Model: SamLowe/roberta-base-go_emotions (GoEmotions)
+# Detects 27 nuanced emotions plus neutral. Scores are multi-label rather
+# than a seven-way probability distribution, so several feelings may score
+# highly for the same journal entry.
 # ══════════════════════════════════════════════════════════════
 
 from transformers import pipeline
 
 # Valence formula weights (tunable later based on testing)
-POSITIVE_EMOTIONS = {"joy": 1.0, "surprise": 0.5}
-NEGATIVE_EMOTIONS = {"sadness": 1.0, "anger": 1.0, "fear": 1.0, "disgust": 1.0}
+POSITIVE_EMOTIONS = {
+    "admiration": 0.7, "amusement": 0.7, "approval": 0.5, "caring": 0.7,
+    "excitement": 0.8, "gratitude": 1.0, "joy": 1.0, "love": 1.0,
+    "optimism": 0.8, "pride": 0.8, "relief": 0.7,
+}
+NEGATIVE_EMOTIONS = {
+    "anger": 1.0, "annoyance": 0.6, "disappointment": 0.8,
+    "disapproval": 0.5, "disgust": 0.8, "embarrassment": 0.7,
+    "fear": 1.0, "grief": 1.0, "nervousness": 0.9, "remorse": 0.7,
+    "sadness": 1.0,
+}
 
 
 class EmotionService:
     def __init__(self):
-        print("⏳ Loading emotion model (first run downloads ~330MB, one time only)...")
+        print("⏳ Loading GoEmotions model (first run downloads the model once)...")
         self.classifier = pipeline(
             task="text-classification",
-            model="j-hartmann/emotion-english-distilroberta-base",
-            top_k=None,  # return confidence scores for ALL 7 emotions
+            model="SamLowe/roberta-base-go_emotions",
+            top_k=None,  # return scores for every GoEmotions label
         )
         print("✅ Emotion model loaded successfully!")
 

@@ -113,10 +113,10 @@ class ChatMessageResponse(BaseModel):
     text: str
     emotion: str | None
     created_at: datetime
+    
 
-
-class ChatResponse(BaseModel):
-    user_message: ChatMessageResponse
-    reply: ChatMessageResponse
-    crisis: bool = False
+class ChatSendResponse(BaseModel):
+    user_message: ChatMessageResponse   # frontend reads .user_message.emotion
+    reply: ChatMessageResponse          # frontend reads .reply.text
+    crisis: bool                        # frontend styles red alert when true
 

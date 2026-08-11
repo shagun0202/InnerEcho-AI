@@ -1,0 +1,19 @@
+# Environment variables
+.env.example
+Backend/.env.example
+
+# Virtual environments
+venv/
+Backend/venv/
+
+# Python cache
+__pycache__/
+Backend/**/__pycache__/
+*.pyc
+
+# Database
+*.db
+Backend/moodmentor.db
+
+# VS Code
+.vscode/

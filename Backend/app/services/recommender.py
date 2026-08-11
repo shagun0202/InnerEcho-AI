@@ -11,11 +11,32 @@ from sqlalchemy.orm import Session
 from app.models import Activity, Recommendation, JournalEntry
 
 
+# GoEmotions is intentionally precise; the wellness catalog is organised into
+# a smaller set of intervention categories. This mapping keeps every label
+# actionable while still allowing the UI to show the original detailed label.
+EMOTION_TO_ACTIVITY_CATEGORY = {
+    "anger": "anger", "annoyance": "anger", "disapproval": "anger",
+    "disgust": "disgust", "fear": "fear", "nervousness": "fear",
+    "sadness": "sadness", "grief": "sadness", "disappointment": "sadness",
+    "embarrassment": "sadness", "remorse": "sadness",
+    "joy": "joy", "amusement": "joy", "excitement": "joy", "love": "joy",
+    "gratitude": "joy", "optimism": "joy", "pride": "joy", "relief": "joy",
+    "admiration": "joy", "approval": "joy", "caring": "joy",
+    "surprise": "surprise", "realization": "surprise", "confusion": "surprise",
+    "curiosity": "surprise", "desire": "surprise", "neutral": "neutral",
+}
+
+
 def get_recommendations(db: Session, user_id: int, emotions: dict,
                         limit: int = 3) -> list[Activity]:
     """Pick the best activities for the user's current emotional state."""
     sorted_emotions = sorted(emotions.items(), key=lambda x: x[1], reverse=True)
-    top_emotions = [e for e, _ in sorted_emotions[:2]]  # dominant + runner-up
+    top_emotions = [
+        EMOTION_TO_ACTIVITY_CATEGORY.get(emotion, "neutral")
+        for emotion, _ in sorted_emotions[:3]
+    ]
+    # Preserve order while avoiding duplicate categories, e.g. grief + sadness.
+    top_emotions = list(dict.fromkeys(top_emotions))
 
     candidates = db.query(Activity).filter(Activity.emotion.in_(top_emotions)).all()
 

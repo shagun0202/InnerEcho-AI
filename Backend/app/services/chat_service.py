@@ -7,126 +7,117 @@
 
 import random
 
-from sqlalchemy.orm import Session
-
 from app.config import GEMINI_MODEL
-from app.models import JournalEntry, ChatMessage
+from app.models import ChatMessage
 from app.services.gemini_service import get_gemini_service
 
-# 🚨 Crisis signals — checked BEFORE anything else (responsible AI)
+# ── 🚨 Crisis safety net — deterministic code, NEVER the LLM's job ──
 CRISIS_KEYWORDS = [
-    "suicide", "suicidal", "kill myself", "end my life", "want to die",
-    "wanna die", "self harm", "self-harm", "hurt myself", "cutting myself",
-    "no reason to live", "better off dead", "end it all", "can't go on anymore",
+    "suicide", "suicidal", "kill myself", "end my life", "end it all",
+    "want to die", "wanna die", "self harm", "self-harm", "selfharm",
+    "hurt myself", "hurting myself", "cut myself", "cutting myself",
+    "no reason to live", "don't want to live", "dont want to live",
+    "better off dead", "better off without me", "can't go on", "cant go on",
 ]
 
 CRISIS_REPLY = (
-    "I'm really glad you told me this, and I want you to know that your life matters. 💙\n\n"
-    "What you're feeling right now is more than I can help with — but there are people "
-    "trained for exactly this moment, and they truly want to listen:\n\n"
-    "📞 KIRAN (Govt. of India): 1800-599-0019 — free, 24/7\n"
-    "📞 AASRA: 9820466726 — 24/7\n"
-    "📞 Vandrevala Foundation: 1860-2662-345 — 24/7\n\n"
-    "If you're outside India, please search 'crisis helpline' + your country name.\n"
-    "You don't have to carry this alone — please reach out right now. 🤝"
+    "I'm really glad you told me this, and I want you to know: your life matters, "
+    "and what you're carrying sounds heavier than anyone should carry alone. 💚\n\n"
+    "Please reach out right now — you can call KIRAN, India's free 24/7 mental "
+    "health helpline, at 1800-599-0019. If you're in immediate danger, call 112.\n\n"
+    "And if you can, tell someone you trust today — a friend, family member, "
+    "teacher, or counselor. You deserve support, and help is truly available. 🤝"
 )
 
-CHAT_PROMPT = """You are MoodMentor, a warm and supportive emotional wellness companion in a chat conversation.
 
-USER'S RECENT JOURNAL MOODS (your memory of them):
-{mood_context}
+def detect_crisis(text: str) -> bool:
+    """Keyword safety net. Deliberately errs on the side of caution:
+    a false alarm costs one caring message; a miss costs everything."""
+    t = text.lower()
+    return any(keyword in t for keyword in CRISIS_KEYWORDS)
 
-RECENT CONVERSATION:
-{history}
 
-RULES:
-- Be warm, human, conversational — a caring friend, NOT a therapist, NOT a robot
-- Keep replies SHORT: 2-4 sentences (this is chat, not an essay)
-- Gently reference their emotional patterns when relevant ("I noticed you've been stressed lately...")
-- Never diagnose, never give medical advice, never claim to be a professional
-- Ask ONE gentle follow-up question when it helps them open up
-- Their current message was detected as carrying the emotion: {emotion}
+# ── 💬 Gemini reply with conversation memory ──
+CHAT_PROMPT = """You are MoodMentor, a warm and supportive emotional wellness companion.
 
-User's message: \"\"\"{text}\"\"\"
+Rules for every reply:
+- 2-4 sentences, warm and human — never robotic or clinical
+- Validate the feeling FIRST, then ask at most ONE gentle follow-up question
+- Remember details from the conversation and refer back to them naturally
+- Never diagnose, never give medical advice, never claim to be a therapist
+- If the person seems to be struggling seriously, gently encourage reaching
+  out to someone they trust or a professional
+
+{history}The user's latest message (detected emotion: {emotion}):
+\"\"\"{text}\"\"\"
 
 Your reply:"""
 
-# Demo-proof fallbacks 🛡️ (no API key / quota / offline → chat still works)
-FALLBACK_CHAT = [
-    "I'm here and I'm listening. 💚 Tell me more about what's on your mind?",
-    "Thank you for sharing that with me. How long have you been feeling this way?",
-    "That sounds really significant. What feels like the heaviest part of it right now?",
-    "I hear you — and whatever you're feeling is valid. What would help you feel even 1% better today?",
-    "I'm glad you're putting this into words. That's already a strong step. What else is going on?",
-]
+
+def _format_history(messages: list[ChatMessage]) -> str:
+    """Render recent messages as a transcript for the prompt."""
+    if not messages:
+        return ""
+    lines = ["Recent conversation:"]
+    for m in messages:
+        speaker = "User" if m.role == "user" else "MoodMentor"
+        lines.append(f"{speaker}: {m.text}")
+    return "\n".join(lines) + "\n\n"
 
 
-class ChatService:
-    @staticmethod
-    def detect_crisis(text: str) -> bool:
-        t = text.lower()
-        return any(k in t for k in CRISIS_KEYWORDS)
+# ── 🛡️ Curated fallbacks — demo-proofing, same philosophy as Week 3 ──
+# Two variants per emotion so repeated chats don't look broken.
+FALLBACK_CHAT = {
+    "joy": [
+        "That's wonderful to hear! 😊 Moments like this deserve to be savored — what's been the best part of it?",
+        "I can feel the happiness in your words! 💛 What's making today feel so good?",
+    ],
+    "sadness": [
+        "I'm really glad you're sharing this with me. 💙 That sounds heavy — what's weighing on you the most right now?",
+        "Thank you for trusting me with this feeling. You don't have to carry it alone — I'm listening. What's on your heart?",
+    ],
+    "anger": [
+        "That frustration makes sense — something clearly felt unfair. 🧡 I'm here; want to tell me what happened?",
+        "It takes real self-awareness to talk about anger instead of acting on it. What triggered this feeling?",
+    ],
+    "fear": [
+        "That sounds genuinely stressful, and it's okay to feel this way. 💚 What's the biggest worry looping in your mind right now?",
+        "I'm right here with you. Sometimes naming a fear out loud shrinks it a little — what scenario are you imagining?",
+    ],
+    "surprise": [
+        "That sounds unexpected! 💜 How are you feeling about it now that the first shock is settling?",
+        "Life just threw you a curveball! Was it the good kind of surprise or the tricky kind?",
+    ],
+    "disgust": [
+        "Something about that clearly didn't sit right with you — and that reaction is worth listening to. What felt wrong about it?",
+        "That sounds really off-putting. This feeling often points to a value of yours being crossed — does that ring true?",
+    ],
+    "neutral": [
+        "Thanks for checking in with me. ✨ How has your day been treating you so far?",
+        "I'm here and listening 💚 What's been on your mind today?",
+    ],
+}
 
-    def _mood_context(self, db: Session, user_id: int) -> str:
-        """The companion's 'memory': last 5 journal entries + their emotions."""
-        entries = (
-            db.query(JournalEntry)
-            .filter(JournalEntry.user_id == user_id)
-            .order_by(JournalEntry.created_at.desc())
-            .limit(5)
-            .all()
+
+def _fallback_reply(emotion: str) -> str:
+    return random.choice(FALLBACK_CHAT.get(emotion, FALLBACK_CHAT["neutral"]))
+
+
+def generate_chat_reply(text: str, emotion: str,
+                        history: list[ChatMessage]) -> str:
+    """Gemini reply with trimmed conversation context.
+    Reuses the Week 3 singleton client — auto-fallback if unavailable."""
+    service = get_gemini_service()
+    if service.client is None:
+        return _fallback_reply(emotion)
+    try:
+        prompt = CHAT_PROMPT.format(
+            history=_format_history(history), emotion=emotion, text=text
         )
-        if not entries:
-            return "No journal entries yet — you don't know much about them yet."
-        lines = []
-        for e in entries:
-            day = e.created_at.strftime("%b %d")
-            lines.append(
-                f"- {day}: felt {e.analysis.dominant_emotion} "
-                f"(valence {e.analysis.valence_score:+.2f}) — wrote: \"{e.text[:80]}\""
-            )
-        return "\n".join(lines)
-
-    def _history(self, db: Session, user_id: int, limit: int = 10) -> str:
-        msgs = (
-            db.query(ChatMessage)
-            .filter(ChatMessage.user_id == user_id)
-            .order_by(ChatMessage.created_at.desc())
-            .limit(limit)
-            .all()
+        response = service.client.models.generate_content(
+            model=GEMINI_MODEL, contents=prompt
         )
-        msgs.reverse()  # oldest → newest
-        if not msgs:
-            return "(This is the start of the conversation)"
-        return "\n".join(
-            f"{'User' if m.role == 'user' else 'MoodMentor'}: {m.text}" for m in msgs
-        )
-
-    def generate_reply(self, db: Session, user_id: int, text: str, emotion: str) -> str:
-        gemini = get_gemini_service()          # ♻️ reuse the existing singleton
-        if gemini.client is None:
-            return random.choice(FALLBACK_CHAT)
-        try:
-            prompt = CHAT_PROMPT.format(
-                mood_context=self._mood_context(db, user_id),
-                history=self._history(db, user_id),
-                emotion=emotion,
-                text=text,
-            )
-            response = gemini.client.models.generate_content(
-                model=GEMINI_MODEL, contents=prompt
-            )
-            return response.text.strip()
-        except Exception as e:
-            print(f"⚠️  Chat request failed ({e}) — using fallback reply")
-            return random.choice(FALLBACK_CHAT)
-
-
-_service: "ChatService | None" = None
-
-
-def get_chat_service() -> ChatService:
-    global _service
-    if _service is None:
-        _service = ChatService()
-    return _service
+        return response.text.strip()
+    except Exception as e:
+        print(f"⚠️  Gemini chat failed ({e}) — using fallback reply")
+        return _fallback_reply(emotion)

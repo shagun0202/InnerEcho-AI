@@ -109,14 +109,21 @@ ACTIVITIES = [
      "description": "A tiny environment change to refresh a flat mood.",
      "duration_minutes": 5,
      "content": "Go outside or to a window for 5 minutes. Look at the furthest point you can see. Changing your visual field genuinely changes your mental field."},
+    {"emotion": "neutral", "type": "game", "title": "A Five-Minute Mind Reset",
+     "description": "A light, time-boxed puzzle can interrupt an unhelpful thought loop.",
+     "duration_minutes": 5,
+     "content": "Set a 5-minute timer and play one simple word, number, or visual puzzle. The goal is not to win or keep scrolling; it is to give your attention one small, satisfying reset. Stop when the timer ends and notice whether your body feels different."},
 ]
 
 
 def seed_activities(db: Session):
-    """Insert the activity catalog once (skipped if already seeded)."""
-    if db.query(Activity).count() > 0:
-        return
+    """Seed missing activities without overwriting users' existing history."""
+    existing_titles = {title for (title,) in db.query(Activity.title).all()}
+    inserted = 0
     for data in ACTIVITIES:
-        db.add(Activity(**data))
-    db.commit()
-    print(f"🌱 Seeded {len(ACTIVITIES)} wellness activities")
+        if data["title"] not in existing_titles:
+            db.add(Activity(**data))
+            inserted += 1
+    if inserted:
+        db.commit()
+        print(f"🌱 Seeded {inserted} new wellness activities")
