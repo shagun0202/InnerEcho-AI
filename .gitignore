@@ -17,3 +17,5 @@ Backend/moodmentor.db
 
 # VS Code
 .vscode/
+
+Frontend/moodmentor-web/dist/
