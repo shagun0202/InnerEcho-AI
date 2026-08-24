@@ -35,7 +35,7 @@ class EmotionService:
 
     def analyze(self, text: str) -> dict:
         """Analyze text and return all emotion scores + derived metrics."""
-        results = self.classifier(text)[0]  # list of {"label": str, "score": float}
+        results = self.classifier(text, truncation=True, max_length=512)[0]
 
         # Build sorted emotion dict: {"joy": 0.97, "surprise": 0.02, ...}
         emotions = {r["label"]: round(r["score"], 4) for r in results}

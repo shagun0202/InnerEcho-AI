@@ -120,3 +120,93 @@ class ChatSendResponse(BaseModel):
     reply: ChatMessageResponse          # frontend reads .reply.text
     crisis: bool                        # frontend styles red alert when true
 
+# ── Quick mood check-in ─────────────────────────────────────
+class QuickMoodInput(BaseModel):
+    mood: str = Field(..., pattern="^(joy|sadness|fear|anger|neutral|surprise|disgust)$")
+    note: str | None = Field(None, max_length=100)
+
+
+class QuickMoodResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    mood: str
+    note: str | None
+    created_at: datetime
+
+# -- Gamification --
+class AchievementDefinition(BaseModel):
+    id: str
+    name: str
+    icon: str
+    description: str
+    unlocked: bool = False
+    unlocked_at: datetime | None = None
+
+class GamificationResponse(BaseModel):
+    streak_days: int
+    total_entries: int
+    wellness_score: int
+    badges: list[AchievementDefinition]
+
+# -- Weekly Report --
+class WeeklyReportResponse(BaseModel):
+    week_start: str
+    week_end: str
+    total_entries: int
+    avg_valence: float
+    dominant_emotion: str
+    emotion_distribution: dict[str, int]
+    narrative: str          # Gemini-generated summary
+    highlights: list[str]   # Key insights
+    suggestion: str         # One actionable tip
+
+# -- Team Mood Board --
+class TeamMoodInput(BaseModel):
+    mood: str = Field(..., pattern='^(great|good|okay|rough|struggling)$')
+    note: str | None = Field(None, max_length=200)
+
+class TeamMoodResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    mood: str
+    note: str | None
+    created_at: datetime
+
+class TeamMoodSummary(BaseModel):
+    total_submissions: int
+    mood_counts: dict[str, int]      # {'great': 5, 'good': 12, ...}
+    average_sentiment: str           # 'positive', 'neutral', 'needs_attention'
+    recent_notes: list[str]          # last 10 anonymous notes
+    submitted_today: bool            # whether current user already submitted
+
+# -- Kudos --
+class KudosInput(BaseModel):
+    recipient_name: str = Field(..., min_length=2, max_length=100)
+    message: str = Field(..., min_length=3, max_length=300)
+    emoji: str = Field(default='⭐', max_length=10)
+
+class KudosResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    sender_name: str   # resolved from sender relationship
+    recipient_name: str
+    message: str
+    emoji: str
+    created_at: datetime
+
+# -- Meeting Recovery --
+class MeetingRecoveryResponse(BaseModel):
+    suggested_break_minutes: int
+    activities: list[str]
+    affirmation: str
+
+# -- Work-Life Balance --
+class WorkLifeScoreResponse(BaseModel):
+    score: int                    # 0-100
+    category: str                 # 'thriving', 'balanced', 'needs_attention', 'at_risk'
+    journal_regularity: int       # % days with entries in last 30
+    avg_valence: float
+    evening_entries_pct: int      # % entries after 6pm (overworking signal)
+    streak_days: int
+    tip: str

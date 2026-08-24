@@ -9,11 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mediapipe/tasks-vision": "^1.0.1",
     "@vitejs/plugin-react": "latest",
-    "vite": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "recharts": "latest"
-  },
-  "devDependencies": {}
+    "recharts": "latest",
+    "vite": "latest"
+  }
 }

@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import models  # noqa: F401  (registers tables before create_all)
 from app.database import Base, engine, SessionLocal
-from app.routers import auth, journal, analytics, recommendations, chat   # 🆕 analytics added
+from app.routers import auth, journal, analytics, recommendations, chat, gamification, report, team, mood   # 🆕 analytics added
 from app.schemas import JournalInput, EmotionResult
 from app.seed import seed_activities
 from app.services.emotion_service import get_emotion_service
@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="MoodMentor API", version="0.4.0", lifespan=lifespan)
+app = FastAPI(title="MoodMentor API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -44,12 +44,15 @@ app.include_router(journal.router)
 app.include_router(recommendations.router)
 app.include_router(analytics.router)  # 🆕 Week 4
 app.include_router(chat.router)
-
+app.include_router(gamification.router)
+app.include_router(report.router)
+app.include_router(team.router)
+app.include_router(mood.router)
 
 
 @app.get("/")
 def root():
-    return {"message": "MoodMentor API v0.4 🧠💚", "docs": "/docs"}
+    return {"message": "MoodMentor API v1.0.0 🧠💚", "docs": "/docs"}
 
 
 @app.post("/analyze", response_model=EmotionResult)

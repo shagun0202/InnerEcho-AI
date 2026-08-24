@@ -19,3 +19,8 @@ Backend/moodmentor.db
 .vscode/
 
 Frontend/moodmentor-web/dist/
+
+# Frontend dependencies and Vite cache
+node_modules/
+Frontend/moodmentor-web/node_modules/
+*.vite
