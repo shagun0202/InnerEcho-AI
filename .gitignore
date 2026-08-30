@@ -24,3 +24,7 @@ Frontend/moodmentor-web/dist/
 node_modules/
 Frontend/moodmentor-web/node_modules/
 *.vite
+
+# Environment variables
+Backend/.env
+.env
