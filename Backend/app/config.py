@@ -16,3 +16,9 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./moodmentor.db")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 # If 2.5-flash ever errors, switch to "gemini-2.0-flash" in your .env
+
+# Google OAuth 2.0 Settings (Least-Privilege, Secrets strictly backend-only)
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:5173/auth/google/callback")
+

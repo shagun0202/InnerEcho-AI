@@ -9,18 +9,14 @@ import Journal from './components/Journal'
 import MoodStudio from './components/MoodStudio'
 import Chat from './components/Chat'
 import History from './components/History'
-import QuickMoodCheckIn from './components/QuickMoodCheckIn'
 import ProfileSettings from './components/ProfileSettings'
 import AmbientPlayer from './components/AmbientPlayer'
 import GuidedMeditation from './components/GuidedMeditation'
 import WeeklyReport from './components/WeeklyReport'
-import Achievements from './components/Achievements'
 import MoodPlaylist from './components/MoodPlaylist'
-import TeamMoodBoard from './components/TeamMoodBoard'
-import KudosWall from './components/KudosWall'
 import MeetingRecovery from './components/MeetingRecovery'
-import WorkLifeBalance from './components/WorkLifeBalance'
 import Onboarding from './components/Onboarding'
+import SafetyAlertModal from './components/SafetyAlertModal'
 
 const SESSION_KEY = 'moodmentor-session'
 
@@ -42,16 +38,11 @@ export const pageInfo = {
   studio: ['Mood Studio', 'A small visual reset, made just for this moment.'],
   chat: ['Talk With Me', 'Speak or write freely — I am here to listen and support you.'],
   history: ['Reflection history', 'Your private record of check-ins.'],
-  quickmood: ['Quick check-in', 'How are you feeling right now?'],
   meditation: ['Guided meditation', 'A few minutes of stillness for your mind.'],
-  achievements: ['Your achievements', 'Celebrate your wellness journey.'],
   report: ['Weekly report', 'Your AI-generated wellness summary.'],
   playlist: ['Mood playlist', 'Music matched to how you feel.'],
-  team: ['Team mood', 'See how everyone is feeling today.'],
-  kudos: ['Kudos wall', 'Celebrate your colleagues.'],
   recovery: ['Meeting recovery', 'A quick reset after your meeting.'],
-  balance: ['Work-life balance', 'How balanced is your routine?'],
-  profile: ['Settings', 'Your account and preferences.'],
+  profile: ['Settings & Privacy', 'Your account, trusted contacts, and privacy preferences.'],
 }
 
 function View(props) {
@@ -59,16 +50,11 @@ function View(props) {
   if (props.view === 'studio') return <MoodStudio />
   if (props.view === 'chat') return <Chat {...props} />
   if (props.view === 'history') return <History entries={props.data.history} />
-  if (props.view === 'quickmood') return <QuickMoodCheckIn token={props.token} />
-  if (props.view === 'meditation') return <GuidedMeditation />
-  if (props.view === 'achievements') return <Achievements token={props.token} />
+  if (props.view === 'meditation') return <GuidedMeditation data={props.data} />
   if (props.view === 'report') return <WeeklyReport token={props.token} />
   if (props.view === 'playlist') return <MoodPlaylist data={props.data} />
-  if (props.view === 'team') return <TeamMoodBoard token={props.token} />
-  if (props.view === 'kudos') return <KudosWall token={props.token} />
   if (props.view === 'recovery') return <MeetingRecovery token={props.token} />
-  if (props.view === 'balance') return <WorkLifeBalance token={props.token} />
-  if (props.view === 'profile') return <ProfileSettings user={props.user} theme={props.theme} toggleTheme={props.toggleTheme} onLogout={props.logout} />
+  if (props.view === 'profile') return <ProfileSettings user={props.user} token={props.token} theme={props.theme} toggleTheme={props.toggleTheme} onLogout={props.logout} />
   return <Dashboard data={props.data} onNavigateJournal={() => props.setView('journal')} />
 }
 
@@ -86,6 +72,7 @@ export default function App() {
   const [busy, setBusy] = useState(false)
   const [theme, setTheme] = useState(() => localStorage.getItem('moodmentor-theme') || 'light')
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('moodmentor-onboarded'))
+  const [safetyAlertData, setSafetyAlertData] = useState(null)
 
   const token = session?.token
   const user = session?.user
@@ -149,14 +136,35 @@ export default function App() {
 
   async function submitJournal(event) {
     event.preventDefault()
-    if (journal.trim().length < 3) return setError('Write a little more first.')
-    setBusy(true)
+    if (!journal.trim()) return
     setError('')
-    try { 
-      const result = await request('/journal', { method: 'POST', token, body: { text: journal } })
-      setAnalysis(result)
+    setBusy(true)
+    try {
+      const entry = await request('/journal/entries', {
+        method: 'POST',
+        token,
+        body: { content: journal, entry_type: 'freeform' },
+      })
+
       setJournal('')
-      loadDashboard() 
+      const fullAnalysis = await request(`/analytics/journal/${entry.id}`, { token })
+      setAnalysis(fullAnalysis)
+
+      // Evaluate safety for distress indicators
+      try {
+        const safetyResult = await request('/safety/evaluate', {
+          method: 'POST',
+          token,
+          body: { text: entry.content, source: 'journal' },
+        })
+        if (safetyResult && (safetyResult.risk_level === 'high' || safetyResult.risk_level === 'critical')) {
+          setSafetyAlertData(safetyResult)
+        }
+      } catch (safetyErr) {
+        console.warn('Safety evaluation skipped:', safetyErr)
+      }
+
+      await loadDashboard()
     } catch (e) { 
       setError(e.message) 
     } finally { 
@@ -166,41 +174,85 @@ export default function App() {
 
   async function sendChat(event) {
     event.preventDefault()
-    if (!chatText.trim()) return
-    const message = chatText
+    if (!chatText.trim() || busy) return
+    const userMsg = { role: 'user', content: chatText }
+    setChat(prev => [...prev, userMsg])
     setChatText('')
     setBusy(true)
-    try { 
-      const result = await request('/chat', { method: 'POST', token, body: { text: message } })
-      setChat(items => [...items, result.user_message, result.reply]) 
-    } catch (e) { 
-      setError(e.message) 
-    } finally { 
-      setBusy(false) 
+    setError('')
+    try {
+      const response = await request('/chat/messages', {
+        method: 'POST',
+        token,
+        body: { message: userMsg.content },
+      })
+      const assistantMsg = {
+        role: 'assistant',
+        content: response.content || response.response || response.message,
+      }
+      setChat(prev => [...prev, assistantMsg])
+
+      // Evaluate safety for chat message
+      try {
+        const safetyResult = await request('/safety/evaluate', {
+          method: 'POST',
+          token,
+          body: { text: userMsg.content, source: 'chat' },
+        })
+        if (safetyResult && (safetyResult.risk_level === 'high' || safetyResult.risk_level === 'critical')) {
+          setSafetyAlertData(safetyResult)
+        }
+      } catch (safetyErr) {
+        console.warn('Safety evaluation skipped:', safetyErr)
+      }
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setBusy(false)
     }
   }
 
-  function logout() { 
+  function logout() {
     localStorage.removeItem(SESSION_KEY)
     setSession(null)
+    setView('dashboard')
     setData({ summary: null, trends: [], distribution: null, history: [] })
-    setChat([]) 
+    setChat([])
+    setAnalysis(null)
   }
 
   if (!session) {
-    return showAuth
-      ? <Auth mode={authMode} setMode={setAuthMode} error={error} busy={busy} onSubmit={authenticate} />
-      : <Landing onStart={() => { setAuthMode('signup'); setShowAuth(true) }} onLogin={() => { setAuthMode('login'); setShowAuth(true) }} />
+    if (showAuth) {
+      return (
+        <Auth 
+          mode={authMode} 
+          setMode={setAuthMode} 
+          error={error} 
+          busy={busy} 
+          onSubmit={authenticate} 
+        />
+      )
+    }
+    return (
+      <Landing 
+        onGetStarted={() => { setAuthMode('signup'); setShowAuth(true) }}
+        onLogin={() => { setAuthMode('login'); setShowAuth(true) }}
+      />
+    )
   }
 
   return (
     <>
-      <main className="app-shell">
+      <main className="layout">
       <aside className="sidebar">
-        <a className="brand" href="#dashboard"><span>✦</span> MoodMentor</a>
+        <div className="brand">
+          <span className="brand-dot">✦</span> MoodMentor
+        </div>
         
-        <div className="side-user">
-          <div className="avatar">{user?.name?.[0] || '?'}</div>
+        <div className="user-profile">
+          <div className="avatar">
+            {user?.name?.[0] || '?'}
+          </div>
           <div>
             <b>{user?.name || 'User'}</b>
             <small>Your calm space</small>
@@ -214,8 +266,8 @@ export default function App() {
               className={view === key ? 'nav-active' : ''} 
               onClick={() => setView(key)}
             >
-              <span>{({ dashboard: '⌂', journal: '✎', studio: '◉', chat: '🎙️', history: '◷', quickmood: '⚡', meditation: '🧘', achievements: '🏆', report: '📊', playlist: '🎵', team: '👥', kudos: '🎉', recovery: '☕', balance: '⚖️', profile: '⚙' })[key] || '•'}</span>
-              {({ dashboard: 'Dashboard', journal: 'Journal', studio: 'Mood Studio', chat: 'Talk With Me', history: 'History', quickmood: 'Quick Check-in', meditation: 'Meditation', achievements: 'Achievements', report: 'Weekly Report', playlist: 'Mood Playlist', team: 'Team Mood', kudos: 'Kudos Wall', recovery: 'Meeting Recovery', balance: 'Work-Life Balance', profile: 'Settings' })[key] || key}
+              <span>{({ dashboard: '⌂', journal: '✎', studio: '◉', chat: '🎙️', history: '◷', meditation: '🧘', report: '📊', playlist: '🎵', recovery: '☕', profile: '⚙' })[key] || '•'}</span>
+              {({ dashboard: 'Dashboard', journal: 'Journal', studio: 'Mood Studio', chat: 'Talk With Me', history: 'History', meditation: 'Meditation', report: 'Weekly Report', playlist: 'Mood Playlist', recovery: 'Meeting Recovery', profile: 'Settings' })[key] || key}
             </button>
           ))}
         </nav>
@@ -230,7 +282,9 @@ export default function App() {
             <h1>{title[0]}</h1>
             <p className="subtitle">{title[1]}</p>
           </div>
-          <div className="header-avatar">{user?.name?.[0] || '?'}</div>
+          <div className="header-avatar">
+            {user?.name?.[0] || '?'}
+          </div>
         </header>
         
         {error && (
@@ -264,11 +318,20 @@ export default function App() {
       </section>
       <AmbientPlayer />
       </main>
+
       {showOnboarding && (
         <Onboarding onComplete={() => {
           localStorage.setItem('moodmentor-onboarded', '1')
           setShowOnboarding(false)
         }} />
+      )}
+
+      {safetyAlertData && (
+        <SafetyAlertModal 
+          safetyData={safetyAlertData} 
+          token={token} 
+          onDismiss={() => setSafetyAlertData(null)} 
+        />
       )}
     </>
   )

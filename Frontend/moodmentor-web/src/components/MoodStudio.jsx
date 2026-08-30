@@ -42,6 +42,18 @@ const FILTER_CATEGORIES = [
       { id: 'heart_eyes', name: 'Heart Eyes', icon: '😍', note: 'Pulsing anime heart eyes with floating love sparks.', css: 'brightness(1.05) saturate(1.2)', ar: 'heart_eyes' },
       { id: 'devil', name: 'Neon Devil', icon: '😈', note: 'Glowing cyberpunk horns with a mysterious vibe.', css: 'contrast(1.15) brightness(0.95)', ar: 'devil' },
       { id: 'star_freckles', name: 'Star Freckles', icon: '✨', note: 'Twinkling golden star freckles and cosmic dust.', css: 'brightness(1.08) saturate(1.15)', ar: 'star_freckles' },
+      { id: 'clown', name: 'Clown Nose', icon: '🤡', note: 'Bouncy red nose that jiggles when you move!', css: 'brightness(1.06) saturate(1.15)', ar: 'clown' },
+      { id: 'pirate', name: 'Pirate Captain', icon: '🏴‍☠️', note: 'Arrr! Eye patch and bandana, matey!', css: 'sepia(.15) contrast(1.1)', ar: 'pirate' },
+      { id: 'rainbow_tears', name: 'Rainbow Tears', icon: '🌈', note: 'Colorful rainbow streams flowing from your eyes.', css: 'brightness(1.08) saturate(1.25)', ar: 'rainbow_tears' },
+      { id: 'wizard', name: 'Wizard Hat', icon: '🧙', note: 'Magical wizard hat with orbiting sparkles.', css: 'brightness(1.05) saturate(1.12)', ar: 'wizard' },
+      { id: 'alien', name: 'Alien Antenna', icon: '👽', note: 'Bobbing antennae and glowing alien eyes.', css: 'hue-rotate(80deg) brightness(1.05)', ar: 'alien' },
+      { id: 'flower_crown', name: 'Flower Crown', icon: '🌺', note: 'Beautiful ring of flowers around your head.', css: 'brightness(1.1) saturate(1.2)', ar: 'flower_crown' },
+      { id: 'gentleman', name: 'Gentleman', icon: '🎩', note: 'Top hat, monocle, and a dapper curly mustache.', css: 'sepia(.1) contrast(1.08)', ar: 'gentleman' },
+      { id: 'tiger', name: 'Tiger Face', icon: '🐯', note: 'Fierce tiger stripes, nose, and whiskers.', css: 'saturate(1.2) contrast(1.08)', ar: 'tiger' },
+      { id: 'butterfly', name: 'Butterfly Crown', icon: '🦋', note: 'Fluttering butterfly wings beside your temples.', css: 'brightness(1.08) saturate(1.18)', ar: 'butterfly' },
+      { id: 'frog', name: 'Frog Face', icon: '🐸', note: 'Big bulging frog eyes and a wide goofy grin.', css: 'brightness(1.05) saturate(1.1) hue-rotate(40deg)', ar: 'frog' },
+      { id: 'ice_queen', name: 'Ice Queen', icon: '❄️', note: 'Frozen tiara with ice crystals and frosty cheeks.', css: 'brightness(1.1) saturate(.75) hue-rotate(190deg)', ar: 'ice_queen' },
+      { id: 'fire_aura', name: 'Fire Aura', icon: '🔥', note: 'Dancing flames and rising ember sparks.', css: 'contrast(1.12) saturate(1.3)', ar: 'fire_aura' },
     ]
   }
 ]
@@ -711,6 +723,690 @@ function drawStarFreckles(ctx, landmarks, width, height, timestamp) {
   ctx.restore()
 }
 
+// 10. Clown Nose 🤡 — Bouncy jiggly red nose
+function drawClown(ctx, landmarks, width, height, timestamp) {
+  const m = getFaceMetrics(landmarks, width, height)
+  const t = timestamp || performance.now()
+  const jiggle = Math.sin(t / 120) * m.faceWidth * 0.015
+  const squish = 1 + 0.08 * Math.sin(t / 180)
+
+  ctx.save()
+  // Big red nose
+  ctx.translate(m.nose.x + jiggle, m.nose.y)
+  ctx.scale(squish, 1 / squish)
+
+  const noseR = m.faceWidth * 0.12
+  const grad = ctx.createRadialGradient(-noseR * 0.25, -noseR * 0.25, noseR * 0.1, 0, 0, noseR)
+  grad.addColorStop(0, '#ff4444')
+  grad.addColorStop(0.7, '#cc0000')
+  grad.addColorStop(1, '#990000')
+  ctx.fillStyle = grad
+  ctx.beginPath()
+  ctx.arc(0, 0, noseR, 0, Math.PI * 2)
+  ctx.fill()
+
+  // Highlight shine
+  ctx.fillStyle = 'rgba(255,255,255,0.6)'
+  ctx.beginPath()
+  ctx.ellipse(-noseR * 0.3, -noseR * 0.3, noseR * 0.22, noseR * 0.15, -0.5, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.restore()
+
+  // White circles under eyes for clown cheeks
+  ctx.save()
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
+  ;[m.leftCheek, m.rightCheek].forEach(chk => {
+    ctx.beginPath()
+    ctx.arc(chk.x + (chk === m.leftCheek ? m.faceWidth * 0.08 : -m.faceWidth * 0.08), chk.y, m.faceWidth * 0.1, 0, Math.PI * 2)
+    ctx.fill()
+  })
+  // Red circles over the white
+  ctx.fillStyle = 'rgba(255, 0, 0, 0.35)'
+  ;[m.leftCheek, m.rightCheek].forEach(chk => {
+    ctx.beginPath()
+    ctx.arc(chk.x + (chk === m.leftCheek ? m.faceWidth * 0.08 : -m.faceWidth * 0.08), chk.y, m.faceWidth * 0.09, 0, Math.PI * 2)
+    ctx.fill()
+  })
+  ctx.restore()
+}
+
+// 11. Pirate Captain 🏴‍☠️ — Eye patch + bandana
+function drawPirate(ctx, landmarks, width, height) {
+  const m = getFaceMetrics(landmarks, width, height)
+
+  ctx.save()
+  ctx.translate(m.eyeMid.x, m.eyeMid.y)
+  ctx.rotate(m.angle)
+
+  // Bandana headband on forehead
+  const bandY = -(m.eyeMid.y - m.forehead.y) - m.faceWidth * 0.05
+  ctx.fillStyle = '#991b1b'
+  ctx.beginPath()
+  ctx.roundRect(-m.faceWidth * 0.55, bandY - m.faceWidth * 0.06, m.faceWidth * 1.1, m.faceWidth * 0.1, 4)
+  ctx.fill()
+  // Bandana knot
+  ctx.fillStyle = '#7f1d1d'
+  ctx.beginPath()
+  ctx.moveTo(m.faceWidth * 0.45, bandY - m.faceWidth * 0.02)
+  ctx.lineTo(m.faceWidth * 0.65, bandY + m.faceWidth * 0.15)
+  ctx.lineTo(m.faceWidth * 0.55, bandY + m.faceWidth * 0.18)
+  ctx.lineTo(m.faceWidth * 0.38, bandY + m.faceWidth * 0.04)
+  ctx.closePath()
+  ctx.fill()
+
+  // Eye patch on left eye
+  const patchX = -(m.eyeMid.x - m.leftEyeCenter.x)
+  const patchY = -(m.eyeMid.y - m.leftEyeCenter.y)
+  ctx.fillStyle = '#1c1917'
+  ctx.beginPath()
+  ctx.ellipse(patchX, patchY, m.faceWidth * 0.14, m.faceWidth * 0.12, 0, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.strokeStyle = '#78716c'
+  ctx.lineWidth = Math.max(2, m.faceWidth * 0.012)
+  ctx.stroke()
+
+  // Patch strap
+  ctx.strokeStyle = '#292524'
+  ctx.lineWidth = Math.max(2.5, m.faceWidth * 0.015)
+  ctx.beginPath()
+  ctx.moveTo(patchX - m.faceWidth * 0.13, patchY - m.faceWidth * 0.04)
+  ctx.lineTo(-m.faceWidth * 0.5, bandY + m.faceWidth * 0.02)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(patchX + m.faceWidth * 0.13, patchY - m.faceWidth * 0.04)
+  ctx.lineTo(m.faceWidth * 0.5, bandY + m.faceWidth * 0.02)
+  ctx.stroke()
+
+  // Skull crossbone on bandana center
+  ctx.fillStyle = '#fef3c7'
+  ctx.beginPath()
+  ctx.arc(0, bandY, m.faceWidth * 0.035, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.restore()
+}
+
+// 12. Rainbow Tears 🌈
+function drawRainbowTears(ctx, landmarks, width, height, timestamp) {
+  const m = getFaceMetrics(landmarks, width, height)
+  const t = timestamp || performance.now()
+  const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6']
+  const stripW = m.faceWidth * 0.04
+  const tearLen = m.faceWidth * 0.55 + Math.sin(t / 400) * m.faceWidth * 0.05
+
+  ctx.save()
+  ;[m.leftEyeCenter, m.rightEyeCenter].forEach(eye => {
+    colors.forEach((c, i) => {
+      ctx.fillStyle = c
+      const ox = (i - 2.5) * stripW
+      ctx.globalAlpha = 0.8 - (i * 0.05)
+      ctx.fillRect(eye.x + ox, eye.y + m.faceWidth * 0.06, stripW * 0.85, tearLen)
+    })
+  })
+  ctx.globalAlpha = 1
+  // Sparkle at bottom of rainbow
+  ;[m.leftEyeCenter, m.rightEyeCenter].forEach(eye => {
+    for (let i = 0; i < 3; i++) {
+      const sparkA = t / 300 + i * 2.1
+      const sx = eye.x + Math.sin(sparkA) * m.faceWidth * 0.1
+      const sy = eye.y + m.faceWidth * 0.06 + tearLen + Math.cos(sparkA) * m.faceWidth * 0.04
+      drawStar(ctx, sx, sy, 4, m.faceWidth * 0.025, m.faceWidth * 0.01, colors[i * 2])
+    }
+  })
+  ctx.restore()
+}
+
+// 13. Wizard Hat 🧙
+function drawWizard(ctx, landmarks, width, height, timestamp) {
+  const m = getFaceMetrics(landmarks, width, height)
+  const t = timestamp || performance.now()
+  const hatW = m.faceWidth * 0.75
+  const hatH = m.faceWidth * 0.95
+
+  ctx.save()
+  ctx.translate(m.forehead.x, m.forehead.y - m.faceWidth * 0.05)
+  ctx.rotate(m.angle)
+
+  // Hat body — tall cone
+  const grad = ctx.createLinearGradient(0, -hatH, 0, 0)
+  grad.addColorStop(0, '#581c87')
+  grad.addColorStop(0.5, '#7c3aed')
+  grad.addColorStop(1, '#4c1d95')
+
+  ctx.fillStyle = grad
+  ctx.beginPath()
+  ctx.moveTo(-hatW * 0.5, 0)
+  ctx.quadraticCurveTo(-hatW * 0.35, -hatH * 0.5, hatW * 0.1, -hatH)
+  ctx.quadraticCurveTo(hatW * 0.35, -hatH * 0.5, hatW * 0.5, 0)
+  ctx.closePath()
+  ctx.fill()
+  ctx.strokeStyle = '#c084fc'
+  ctx.lineWidth = 2
+  ctx.stroke()
+
+  // Hat brim
+  ctx.fillStyle = '#4c1d95'
+  ctx.beginPath()
+  ctx.ellipse(0, m.faceWidth * 0.02, hatW * 0.6, m.faceWidth * 0.06, 0, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.strokeStyle = '#a855f7'
+  ctx.lineWidth = 2
+  ctx.stroke()
+
+  // Gold band and buckle
+  ctx.fillStyle = '#fbbf24'
+  ctx.fillRect(-hatW * 0.48, -m.faceWidth * 0.08, hatW * 0.96, m.faceWidth * 0.06)
+  ctx.fillStyle = '#f59e0b'
+  ctx.fillRect(-m.faceWidth * 0.04, -m.faceWidth * 0.1, m.faceWidth * 0.08, m.faceWidth * 0.1)
+
+  // Orbiting stars and sparkles
+  for (let i = 0; i < 7; i++) {
+    const angle = t / 700 + (i * Math.PI * 2) / 7
+    const sx = Math.cos(angle) * m.faceWidth * 0.55
+    const sy = -hatH * 0.5 + Math.sin(angle) * m.faceWidth * 0.35
+    const twinkle = 0.5 + 0.5 * Math.sin(t / 200 + i)
+    drawStar(ctx, sx, sy, 4, m.faceWidth * 0.035 * twinkle, m.faceWidth * 0.015 * twinkle, i % 2 === 0 ? '#fde047' : '#c084fc')
+  }
+  ctx.restore()
+}
+
+// 14. Alien Antenna 👽
+function drawAlien(ctx, landmarks, width, height, timestamp) {
+  const m = getFaceMetrics(landmarks, width, height)
+  const t = timestamp || performance.now()
+  const bob = Math.sin(t / 250)
+
+  ctx.save()
+  ctx.translate(m.forehead.x, m.forehead.y)
+  ctx.rotate(m.angle)
+
+  // Two antennae
+  ;[-1, 1].forEach(dir => {
+    const baseX = dir * m.faceWidth * 0.15
+    const tipX = dir * m.faceWidth * 0.22
+    const tipY = -m.faceWidth * 0.65 + bob * m.faceWidth * 0.04
+
+    // Stalk
+    ctx.strokeStyle = '#4ade80'
+    ctx.lineWidth = Math.max(3, m.faceWidth * 0.02)
+    ctx.lineCap = 'round'
+    ctx.beginPath()
+    ctx.moveTo(baseX, -m.faceWidth * 0.12)
+    ctx.quadraticCurveTo(baseX + dir * m.faceWidth * 0.05, -m.faceWidth * 0.4, tipX, tipY)
+    ctx.stroke()
+
+    // Glowing ball
+    ctx.shadowColor = '#22ff66'
+    ctx.shadowBlur = 12
+    ctx.fillStyle = '#22c55e'
+    ctx.beginPath()
+    ctx.arc(tipX, tipY, m.faceWidth * 0.055, 0, Math.PI * 2)
+    ctx.fill()
+
+    ctx.shadowBlur = 0
+    ctx.fillStyle = 'rgba(255,255,255,0.6)'
+    ctx.beginPath()
+    ctx.arc(tipX - m.faceWidth * 0.015, tipY - m.faceWidth * 0.02, m.faceWidth * 0.02, 0, Math.PI * 2)
+    ctx.fill()
+  })
+  ctx.restore()
+
+  // Alien eye glow rings
+  ctx.save()
+  ctx.strokeStyle = '#4ade80'
+  ctx.lineWidth = Math.max(2.5, m.faceWidth * 0.016)
+  ctx.shadowColor = '#22ff66'
+  ctx.shadowBlur = 10
+  ;[m.leftEyeCenter, m.rightEyeCenter].forEach(eye => {
+    ctx.beginPath()
+    ctx.ellipse(eye.x, eye.y, m.faceWidth * 0.11, m.faceWidth * 0.08, 0, 0, Math.PI * 2)
+    ctx.stroke()
+  })
+  ctx.restore()
+}
+
+// 15. Flower Crown 🌺
+function drawFlowerCrown(ctx, landmarks, width, height, timestamp) {
+  const m = getFaceMetrics(landmarks, width, height)
+  const t = timestamp || performance.now()
+  const flowers = ['🌸', '🌼', '🌻', '🌺', '🌷', '🌸', '🌼', '🌻', '🌺']
+  const flowerSize = m.faceWidth * 0.12
+
+  ctx.save()
+  ctx.translate(m.forehead.x, m.forehead.y - m.faceWidth * 0.12)
+  ctx.rotate(m.angle)
+
+  // Draw vine/stem
+  ctx.strokeStyle = '#16a34a'
+  ctx.lineWidth = Math.max(2.5, m.faceWidth * 0.015)
+  ctx.beginPath()
+  ctx.arc(0, 0, m.faceWidth * 0.48, Math.PI * 1.1, Math.PI * 1.9)
+  ctx.stroke()
+
+  // Place flowers along arc
+  flowers.forEach((flower, i) => {
+    const angle = Math.PI * 1.1 + (i / (flowers.length - 1)) * Math.PI * 0.8
+    const fx = Math.cos(angle) * m.faceWidth * 0.48
+    const fy = Math.sin(angle) * m.faceWidth * 0.48
+    const sway = Math.sin(t / 500 + i) * 0.08
+
+    ctx.save()
+    ctx.translate(fx, fy)
+    ctx.rotate(sway)
+    ctx.font = `${flowerSize}px serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(flower, 0, 0)
+    ctx.restore()
+  })
+
+  // Small leaves
+  ctx.fillStyle = '#22c55e'
+  for (let i = 0; i < 5; i++) {
+    const angle = Math.PI * 1.15 + (i / 4) * Math.PI * 0.7
+    const lx = Math.cos(angle) * m.faceWidth * 0.44
+    const ly = Math.sin(angle) * m.faceWidth * 0.44
+    ctx.save()
+    ctx.translate(lx, ly)
+    ctx.rotate(angle + Math.PI / 2)
+    ctx.beginPath()
+    ctx.ellipse(0, 0, m.faceWidth * 0.025, m.faceWidth * 0.06, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.restore()
+  }
+  ctx.restore()
+}
+
+// 16. Gentleman 🎩 — Top hat, monocle, mustache
+function drawGentleman(ctx, landmarks, width, height, timestamp) {
+  const m = getFaceMetrics(landmarks, width, height)
+  const t = timestamp || performance.now()
+
+  ctx.save()
+  ctx.translate(m.forehead.x, m.forehead.y - m.faceWidth * 0.08)
+  ctx.rotate(m.angle)
+
+  // Top hat — body
+  const hatW = m.faceWidth * 0.55
+  const hatH = m.faceWidth * 0.5
+  ctx.fillStyle = '#1c1917'
+  ctx.beginPath()
+  ctx.roundRect(-hatW * 0.5, -hatH, hatW, hatH, [8, 8, 0, 0])
+  ctx.fill()
+  ctx.strokeStyle = '#57534e'
+  ctx.lineWidth = 1.5
+  ctx.stroke()
+
+  // Hat brim
+  ctx.fillStyle = '#0c0a09'
+  ctx.beginPath()
+  ctx.ellipse(0, 0, hatW * 0.7, m.faceWidth * 0.06, 0, 0, Math.PI * 2)
+  ctx.fill()
+
+  // Hat band
+  ctx.fillStyle = '#991b1b'
+  ctx.fillRect(-hatW * 0.5, -m.faceWidth * 0.12, hatW, m.faceWidth * 0.06)
+  ctx.restore()
+
+  // Monocle on right eye
+  ctx.save()
+  ctx.strokeStyle = '#f59e0b'
+  ctx.lineWidth = Math.max(3, m.faceWidth * 0.02)
+  ctx.beginPath()
+  ctx.arc(m.rightEyeCenter.x, m.rightEyeCenter.y, m.faceWidth * 0.12, 0, Math.PI * 2)
+  ctx.stroke()
+
+  // Monocle chain
+  ctx.strokeStyle = '#d4a100'
+  ctx.lineWidth = Math.max(1.5, m.faceWidth * 0.01)
+  ctx.beginPath()
+  ctx.moveTo(m.rightEyeCenter.x + m.faceWidth * 0.12, m.rightEyeCenter.y + m.faceWidth * 0.04)
+  ctx.quadraticCurveTo(m.rightCheek.x, m.chin.y - m.faceWidth * 0.1, m.rightCheek.x - m.faceWidth * 0.1, m.chin.y)
+  ctx.stroke()
+
+  // Glass glare
+  ctx.fillStyle = 'rgba(255,255,255,0.15)'
+  ctx.beginPath()
+  ctx.arc(m.rightEyeCenter.x, m.rightEyeCenter.y, m.faceWidth * 0.11, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.restore()
+
+  // Handlebar mustache
+  ctx.save()
+  ctx.translate(m.upperLip.x, m.upperLip.y - m.faceWidth * 0.02)
+  ctx.rotate(m.angle)
+  ctx.fillStyle = '#292524'
+  ;[-1, 1].forEach(dir => {
+    ctx.beginPath()
+    ctx.moveTo(0, 0)
+    ctx.quadraticCurveTo(dir * m.faceWidth * 0.15, -m.faceWidth * 0.05, dir * m.faceWidth * 0.25, -m.faceWidth * 0.06)
+    ctx.quadraticCurveTo(dir * m.faceWidth * 0.28, -m.faceWidth * 0.08, dir * m.faceWidth * 0.22, -m.faceWidth * 0.03)
+    ctx.quadraticCurveTo(dir * m.faceWidth * 0.12, 0, 0, m.faceWidth * 0.015)
+    ctx.closePath()
+    ctx.fill()
+  })
+  ctx.restore()
+}
+
+// 17. Tiger Face 🐯
+function drawTiger(ctx, landmarks, width, height) {
+  const m = getFaceMetrics(landmarks, width, height)
+
+  // Tiger nose
+  ctx.save()
+  ctx.fillStyle = '#1c1917'
+  ctx.beginPath()
+  ctx.moveTo(m.nose.x - m.faceWidth * 0.06, m.nose.y)
+  ctx.lineTo(m.nose.x + m.faceWidth * 0.06, m.nose.y)
+  ctx.lineTo(m.nose.x, m.nose.y + m.faceWidth * 0.05)
+  ctx.closePath()
+  ctx.fill()
+
+  // White muzzle
+  ctx.fillStyle = 'rgba(255,255,255,0.4)'
+  ctx.beginPath()
+  ctx.ellipse(m.nose.x, m.nose.y + m.faceWidth * 0.08, m.faceWidth * 0.18, m.faceWidth * 0.12, 0, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.restore()
+
+  // Tiger stripes on each cheek
+  ctx.save()
+  ctx.strokeStyle = '#1c1917'
+  ctx.lineWidth = Math.max(3, m.faceWidth * 0.022)
+  ctx.lineCap = 'round'
+
+  ;[-1, 1].forEach(dir => {
+    const cheek = dir === -1 ? m.leftCheek : m.rightCheek
+    const cx = cheek.x + dir * m.faceWidth * 0.05
+    for (let i = 0; i < 3; i++) {
+      const yOff = (i - 1) * m.faceWidth * 0.08
+      ctx.beginPath()
+      ctx.moveTo(cx + dir * m.faceWidth * 0.02, cheek.y + yOff - m.faceWidth * 0.03)
+      ctx.quadraticCurveTo(cx + dir * m.faceWidth * 0.08, cheek.y + yOff, cx + dir * m.faceWidth * 0.02, cheek.y + yOff + m.faceWidth * 0.03)
+      ctx.stroke()
+    }
+  })
+
+  // Whiskers
+  ctx.strokeStyle = '#f5f5f4'
+  ctx.lineWidth = Math.max(1.5, m.faceWidth * 0.01)
+  ;[-1, 1].forEach(dir => {
+    for (const rise of [-0.04, 0.01, 0.06]) {
+      ctx.beginPath()
+      ctx.moveTo(m.nose.x + dir * m.faceWidth * 0.1, m.nose.y + rise * m.faceWidth)
+      ctx.lineTo(m.nose.x + dir * m.faceWidth * 0.48, m.nose.y + rise * m.faceWidth * 1.4)
+      ctx.stroke()
+    }
+  })
+
+  // Forehead stripe
+  ctx.save()
+  ctx.translate(m.forehead.x, m.forehead.y)
+  ctx.rotate(m.angle)
+  ctx.strokeStyle = '#1c1917'
+  ctx.lineWidth = Math.max(2.5, m.faceWidth * 0.018)
+  // Center vertical stripe
+  ctx.beginPath()
+  ctx.moveTo(0, m.faceWidth * 0.05)
+  ctx.lineTo(0, -m.faceWidth * 0.15)
+  ctx.stroke()
+  // Side short stripes
+  ;[-1, 1].forEach(dir => {
+    ctx.beginPath()
+    ctx.moveTo(dir * m.faceWidth * 0.1, m.faceWidth * 0.02)
+    ctx.lineTo(dir * m.faceWidth * 0.15, -m.faceWidth * 0.1)
+    ctx.stroke()
+  })
+  ctx.restore()
+  ctx.restore()
+}
+
+// 18. Butterfly Crown 🦋
+function drawButterfly(ctx, landmarks, width, height, timestamp) {
+  const m = getFaceMetrics(landmarks, width, height)
+  const t = timestamp || performance.now()
+
+  ;[-1, 1].forEach(dir => {
+    const temple = dir === -1 ? m.leftEye : m.rightEye
+    const flap = 0.7 + 0.3 * Math.sin(t / 150 + dir)
+    const wingW = m.faceWidth * 0.2
+    const wingH = m.faceWidth * 0.3 * flap
+
+    ctx.save()
+    ctx.translate(temple.x + dir * m.faceWidth * 0.15, temple.y - m.faceWidth * 0.15)
+    ctx.rotate(m.angle)
+
+    // Upper wing
+    const upperGrad = ctx.createRadialGradient(0, -wingH * 0.3, 0, 0, -wingH * 0.3, wingW)
+    upperGrad.addColorStop(0, dir === -1 ? '#8b5cf6' : '#ec4899')
+    upperGrad.addColorStop(0.6, dir === -1 ? '#6d28d9' : '#db2777')
+    upperGrad.addColorStop(1, dir === -1 ? '#4c1d95' : '#9d174d')
+
+    ctx.fillStyle = upperGrad
+    ctx.beginPath()
+    ctx.moveTo(0, 0)
+    ctx.quadraticCurveTo(dir * wingW, -wingH * 0.7, dir * wingW * 0.8, -wingH)
+    ctx.quadraticCurveTo(dir * wingW * 0.2, -wingH * 0.8, 0, 0)
+    ctx.fill()
+
+    // Lower wing
+    ctx.fillStyle = dir === -1 ? '#a78bfa' : '#f472b6'
+    ctx.globalAlpha = 0.85
+    ctx.beginPath()
+    ctx.moveTo(0, 0)
+    ctx.quadraticCurveTo(dir * wingW * 0.9, wingH * 0.3, dir * wingW * 0.6, wingH * 0.5)
+    ctx.quadraticCurveTo(dir * wingW * 0.15, wingH * 0.4, 0, 0)
+    ctx.fill()
+    ctx.globalAlpha = 1
+
+    // Wing dots
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'
+    ctx.beginPath()
+    ctx.arc(dir * wingW * 0.4, -wingH * 0.5, m.faceWidth * 0.025, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Body
+    ctx.fillStyle = '#1c1917'
+    ctx.beginPath()
+    ctx.ellipse(0, 0, m.faceWidth * 0.012, m.faceWidth * 0.06, 0, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Antennae
+    ctx.strokeStyle = '#1c1917'
+    ctx.lineWidth = 1.5
+    ctx.beginPath()
+    ctx.moveTo(0, -m.faceWidth * 0.06)
+    ctx.quadraticCurveTo(dir * m.faceWidth * 0.05, -m.faceWidth * 0.12, dir * m.faceWidth * 0.04, -m.faceWidth * 0.15)
+    ctx.stroke()
+    ctx.fillStyle = '#1c1917'
+    ctx.beginPath()
+    ctx.arc(dir * m.faceWidth * 0.04, -m.faceWidth * 0.15, 2.5, 0, Math.PI * 2)
+    ctx.fill()
+
+    ctx.restore()
+  })
+}
+
+// 19. Frog Face 🐸
+function drawFrog(ctx, landmarks, width, height) {
+  const m = getFaceMetrics(landmarks, width, height)
+
+  // Bulging frog eyes
+  ctx.save()
+  ;[m.leftEyeCenter, m.rightEyeCenter].forEach(eye => {
+    const bulgeR = m.faceWidth * 0.14
+
+    // Green outer eye bulge
+    ctx.fillStyle = '#4ade80'
+    ctx.strokeStyle = '#15803d'
+    ctx.lineWidth = Math.max(2.5, m.faceWidth * 0.016)
+    ctx.beginPath()
+    ctx.arc(eye.x, eye.y - m.faceWidth * 0.05, bulgeR, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.stroke()
+
+    // White of eye
+    ctx.fillStyle = '#ffffff'
+    ctx.beginPath()
+    ctx.arc(eye.x, eye.y - m.faceWidth * 0.05, bulgeR * 0.65, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Black pupil
+    ctx.fillStyle = '#1c1917'
+    ctx.beginPath()
+    ctx.arc(eye.x, eye.y - m.faceWidth * 0.05, bulgeR * 0.32, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.7)'
+    ctx.beginPath()
+    ctx.arc(eye.x - bulgeR * 0.15, eye.y - m.faceWidth * 0.05 - bulgeR * 0.15, bulgeR * 0.15, 0, Math.PI * 2)
+    ctx.fill()
+  })
+
+  // Wide goofy grin line
+  ctx.strokeStyle = '#15803d'
+  ctx.lineWidth = Math.max(3, m.faceWidth * 0.022)
+  ctx.lineCap = 'round'
+  ctx.beginPath()
+  ctx.moveTo(m.leftCheek.x + m.faceWidth * 0.1, m.upperLip.y + m.faceWidth * 0.02)
+  ctx.quadraticCurveTo(m.nose.x, m.upperLip.y + m.faceWidth * 0.08, m.rightCheek.x - m.faceWidth * 0.1, m.upperLip.y + m.faceWidth * 0.02)
+  ctx.stroke()
+
+  // Nostrils
+  ctx.fillStyle = '#15803d'
+  ;[-1, 1].forEach(dir => {
+    ctx.beginPath()
+    ctx.arc(m.nose.x + dir * m.faceWidth * 0.04, m.nose.y, m.faceWidth * 0.025, 0, Math.PI * 2)
+    ctx.fill()
+  })
+  ctx.restore()
+}
+
+// 20. Ice Queen ❄️
+function drawIceQueen(ctx, landmarks, width, height, timestamp) {
+  const m = getFaceMetrics(landmarks, width, height)
+  const t = timestamp || performance.now()
+
+  ctx.save()
+  ctx.translate(m.forehead.x, m.forehead.y - m.faceWidth * 0.1)
+  ctx.rotate(m.angle)
+
+  // Ice tiara — 5 crystal spikes
+  const tiaraW = m.faceWidth * 0.65
+  const points = [
+    { x: -tiaraW * 0.5, h: 0.2 },
+    { x: -tiaraW * 0.25, h: 0.45 },
+    { x: 0, h: 0.65 },
+    { x: tiaraW * 0.25, h: 0.45 },
+    { x: tiaraW * 0.5, h: 0.2 },
+  ]
+
+  points.forEach(p => {
+    const crystalH = m.faceWidth * p.h
+    const crystalW = m.faceWidth * 0.06
+
+    const grad = ctx.createLinearGradient(p.x, 0, p.x, -crystalH)
+    grad.addColorStop(0, '#bae6fd')
+    grad.addColorStop(0.5, '#e0f2fe')
+    grad.addColorStop(1, '#ffffff')
+
+    ctx.fillStyle = grad
+    ctx.strokeStyle = '#7dd3fc'
+    ctx.lineWidth = 1.5
+    ctx.beginPath()
+    ctx.moveTo(p.x - crystalW, 0)
+    ctx.lineTo(p.x, -crystalH)
+    ctx.lineTo(p.x + crystalW, 0)
+    ctx.closePath()
+    ctx.fill()
+    ctx.stroke()
+  })
+
+  // Tiara base band
+  ctx.fillStyle = '#93c5fd'
+  ctx.globalAlpha = 0.7
+  ctx.fillRect(-tiaraW * 0.55, -m.faceWidth * 0.02, tiaraW * 1.1, m.faceWidth * 0.04)
+  ctx.globalAlpha = 1
+  ctx.restore()
+
+  // Frost on cheeks
+  ctx.save()
+  ctx.fillStyle = 'rgba(186, 230, 253, 0.3)'
+  ;[m.leftCheek, m.rightCheek].forEach(chk => {
+    ctx.beginPath()
+    ctx.arc(chk.x + (chk === m.leftCheek ? m.faceWidth * 0.06 : -m.faceWidth * 0.06), chk.y, m.faceWidth * 0.12, 0, Math.PI * 2)
+    ctx.fill()
+  })
+
+  // Floating snowflake particles
+  for (let i = 0; i < 8; i++) {
+    const angle = t / 600 + (i * Math.PI * 2) / 8
+    const r = m.faceWidth * 0.55 + Math.sin(t / 400 + i) * m.faceWidth * 0.1
+    const sx = m.forehead.x + Math.cos(angle) * r
+    const sy = m.forehead.y + Math.sin(angle) * r * 0.6 - m.faceWidth * 0.15
+    const twinkle = 0.5 + 0.5 * Math.sin(t / 250 + i)
+    drawStar(ctx, sx, sy, 6, m.faceWidth * 0.03 * twinkle, m.faceWidth * 0.012 * twinkle, '#bae6fd')
+  }
+  ctx.restore()
+}
+
+// 21. Fire Aura 🔥
+function drawFireAura(ctx, landmarks, width, height, timestamp) {
+  const m = getFaceMetrics(landmarks, width, height)
+  const t = timestamp || performance.now()
+
+  ctx.save()
+  ctx.translate(m.forehead.x, m.forehead.y - m.faceWidth * 0.08)
+  ctx.rotate(m.angle)
+
+  // Dancing flame tongues
+  const flameCount = 9
+  for (let i = 0; i < flameCount; i++) {
+    const spread = (i / (flameCount - 1)) - 0.5
+    const fx = spread * m.faceWidth * 1.1
+    const phase = Math.sin(t / 100 + i * 0.8) * 0.3
+    const flameH = m.faceWidth * (0.35 + 0.15 * Math.sin(t / 150 + i * 1.2))
+
+    const grad = ctx.createLinearGradient(fx, 0, fx, -flameH)
+    grad.addColorStop(0, 'rgba(239, 68, 68, 0.7)')
+    grad.addColorStop(0.4, 'rgba(249, 115, 22, 0.6)')
+    grad.addColorStop(0.7, 'rgba(234, 179, 8, 0.4)')
+    grad.addColorStop(1, 'rgba(253, 224, 71, 0)')
+
+    ctx.fillStyle = grad
+    ctx.beginPath()
+    ctx.moveTo(fx - m.faceWidth * 0.06, 0)
+    ctx.quadraticCurveTo(fx - m.faceWidth * 0.03 + phase * m.faceWidth * 0.1, -flameH * 0.6, fx + phase * m.faceWidth * 0.05, -flameH)
+    ctx.quadraticCurveTo(fx + m.faceWidth * 0.03 + phase * m.faceWidth * 0.1, -flameH * 0.6, fx + m.faceWidth * 0.06, 0)
+    ctx.closePath()
+    ctx.fill()
+  }
+  ctx.restore()
+
+  // Rising ember sparks
+  ctx.save()
+  for (let i = 0; i < 10; i++) {
+    const lifeT = ((t / 1200 + i * 0.1) % 1)
+    const ex = m.forehead.x + (Math.sin(i * 2.3) * m.faceWidth * 0.5)
+    const ey = m.forehead.y - lifeT * m.faceHeight * 1.3
+    const size = m.faceWidth * 0.015 * (1 - lifeT)
+    ctx.globalAlpha = 1 - lifeT
+    ctx.fillStyle = i % 3 === 0 ? '#fde047' : i % 3 === 1 ? '#f97316' : '#ef4444'
+    ctx.beginPath()
+    ctx.arc(ex + Math.sin(t / 200 + i) * m.faceWidth * 0.04, ey, size, 0, Math.PI * 2)
+    ctx.fill()
+  }
+  ctx.globalAlpha = 1
+
+  // Glow around face
+  ctx.strokeStyle = 'rgba(249, 115, 22, 0.15)'
+  ctx.lineWidth = m.faceWidth * 0.08
+  ctx.beginPath()
+  ctx.ellipse(m.forehead.x, m.eyeMid.y, m.faceWidth * 0.55, m.faceHeight * 0.45, 0, 0, Math.PI * 2)
+  ctx.stroke()
+  ctx.restore()
+}
+
 export default function MoodStudio() {
   const videoRef = useRef(null)
   const streamRef = useRef(null)
@@ -844,6 +1540,18 @@ export default function MoodStudio() {
                 case 'heart_eyes': drawHeartEyes(context, landmarks, canvas.width, canvas.height, time); break
                 case 'devil': drawDevil(context, landmarks, canvas.width, canvas.height); break
                 case 'star_freckles': drawStarFreckles(context, landmarks, canvas.width, canvas.height, time); break
+                case 'clown': drawClown(context, landmarks, canvas.width, canvas.height, time); break
+                case 'pirate': drawPirate(context, landmarks, canvas.width, canvas.height); break
+                case 'rainbow_tears': drawRainbowTears(context, landmarks, canvas.width, canvas.height, time); break
+                case 'wizard': drawWizard(context, landmarks, canvas.width, canvas.height, time); break
+                case 'alien': drawAlien(context, landmarks, canvas.width, canvas.height, time); break
+                case 'flower_crown': drawFlowerCrown(context, landmarks, canvas.width, canvas.height, time); break
+                case 'gentleman': drawGentleman(context, landmarks, canvas.width, canvas.height, time); break
+                case 'tiger': drawTiger(context, landmarks, canvas.width, canvas.height); break
+                case 'butterfly': drawButterfly(context, landmarks, canvas.width, canvas.height, time); break
+                case 'frog': drawFrog(context, landmarks, canvas.width, canvas.height); break
+                case 'ice_queen': drawIceQueen(context, landmarks, canvas.width, canvas.height, time); break
+                case 'fire_aura': drawFireAura(context, landmarks, canvas.width, canvas.height, time); break
                 default: break
               }
             }

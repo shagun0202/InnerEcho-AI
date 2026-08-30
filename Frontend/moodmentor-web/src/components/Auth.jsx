@@ -50,3 +50,4 @@ export default function Auth({ mode, setMode, error, busy, onSubmit }) {
     </main>
   )
 }
+

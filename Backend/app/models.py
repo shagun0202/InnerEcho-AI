@@ -5,7 +5,7 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, Integer, String, Text, Float, DateTime, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, Text, Float, DateTime, ForeignKey, JSON, Boolean
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -17,15 +17,24 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), nullable=False)
     email = Column(String(255), unique=True, index=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)
+    password_hash = Column(String(255), nullable=True)  # nullable for OAuth users
+    google_id = Column(String(255), unique=True, index=True, nullable=True)
+    picture = Column(String(500), nullable=True)
+    auth_provider = Column(String(50), default="local")  # "local" or "google"
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     entries = relationship("JournalEntry", back_populates="user",
                            cascade="all, delete-orphan")
-    chat_messages = relationship("ChatMessage", back_populates="user",   # 🆕 ADD THIS
+    chat_messages = relationship("ChatMessage", back_populates="user",
                                  cascade="all, delete-orphan")
     quick_moods = relationship("QuickMood", back_populates="user",
                                cascade="all, delete-orphan")
+    trusted_contact = relationship("TrustedContact", back_populates="user",
+                                   uselist=False, cascade="all, delete-orphan")
+    integrations = relationship("ConnectedIntegration", back_populates="user",
+                                cascade="all, delete-orphan")
+    safety_events = relationship("SafetyEvent", back_populates="user",
+                                 cascade="all, delete-orphan")
 
 
 class JournalEntry(Base):
@@ -139,3 +148,68 @@ class Kudos(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
     sender = relationship("User")
+
+
+class TrustedContact(Base):
+    """Optional user-configured trusted person for wellness / emergency support."""
+    __tablename__ = "trusted_contacts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True, index=True)
+    name = Column(String(100), nullable=False)
+    relationship_type = Column(String(50), nullable=False)  # e.g., 'Friend', 'Family', 'Partner'
+    phone = Column(String(30), nullable=False)
+    email = Column(String(255), nullable=True)
+    notification_mode = Column(String(20), default="ask")  # 'never', 'ask', 'automatic'
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    user = relationship("User", back_populates="trusted_contact")
+
+
+class ConnectedIntegration(Base):
+    """Explicitly consented third-party integrations with least-privilege tracking."""
+    __tablename__ = "connected_integrations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    provider = Column(String(50), nullable=False)           # e.g. 'google'
+    access_token = Column(Text, nullable=True)              # OAuth 2.0 Access Token
+    refresh_token = Column(Text, nullable=True)             # OAuth 2.0 Refresh Token
+    photos_enabled = Column(Boolean, default=False)
+    contacts_enabled = Column(Boolean, default=False)
+    scopes = Column(Text, nullable=True)                    # granted scopes string
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    user = relationship("User", back_populates="integrations")
+
+
+class SafetyEvent(Base):
+    """Audit log of detected high/critical risk events and notification actions."""
+    __tablename__ = "safety_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    risk_level = Column(String(20), nullable=False)        # 'none', 'low', 'moderate', 'high', 'critical'
+    trigger_source = Column(String(50), nullable=False)    # 'journal', 'chat'
+    notified_contact = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+
+    user = relationship("User", back_populates="safety_events")
+
+
+class UserMemoryPhoto(Base):
+    """User-selected positive memory photo from Google Photos or personal upload."""
+    __tablename__ = "user_memory_photos"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    title = Column(String(150), nullable=False)
+    image_url = Column(Text, nullable=False)
+    reflection = Column(Text, nullable=True)
+    category = Column(String(50), default="personal")
+    source = Column(String(50), default="google_photos")  # 'google_photos', 'upload', 'curated'
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = relationship("User")
