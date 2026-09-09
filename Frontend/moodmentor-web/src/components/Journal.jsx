@@ -89,8 +89,22 @@ export default function Journal({ journal, setJournal, submitJournal, analysis, 
               ))}
             </>
           ) : (
-            <Empty text="After you reflect, your emotional insights and suggested next steps will appear here." />
-          )}
+  <div className="journal-empty-state">
+    <div className="journal-landscape">
+      <div className="landscape-sun"></div>
+      <div className="landscape-mountain mountain-back"></div>
+      <div className="landscape-mountain mountain-front"></div>
+      <div className="landscape-leaf leaf-left"></div>
+      <div className="landscape-leaf leaf-right"></div>
+    </div>
+
+    <p>
+      After you reflect, your emotional<br />
+      insights and suggested next steps<br />
+      will appear here.
+    </p>
+  </div>
+)}
         </article>
       </section>
       

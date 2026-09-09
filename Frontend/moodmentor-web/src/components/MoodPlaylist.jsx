@@ -31,6 +31,11 @@ export default function MoodPlaylist({ data }) {
 
   return (
     <div className="playlist-page" style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+      <img
+        src="/images/playlist-bg.png"
+        alt=""
+        className="playlist-background-illustration"
+      />
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
         <h2 style={{ marginBottom: '10px' }}>Soundtrack Your Mood</h2>
         <p style={{ color: '#666', margin: 0 }}>
@@ -45,15 +50,28 @@ export default function MoodPlaylist({ data }) {
             className="playlist-card"
             style={{
               background: '#fff',
-              borderRadius: '12px',
+              borderRadius: '20px',
               padding: '20px',
-              border: '1px solid #eaeaea',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              border: '1px solid #dcebfa',
+              boxShadow: '0 8px 24px rgba(36, 52, 71, 0.07)',
               display: 'flex',
               flexDirection: 'column'
             }}
           >
-            <div style={{ fontSize: '32px', marginBottom: '15px' }}>{playlist.icon}</div>
+            <div style={{
+              width: '58px',
+              height: '58px',
+              borderRadius: '50%',
+              background: '#eaf3fc',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '30px',
+              marginBottom: '15px'
+              }}
+           >
+              {playlist.icon}
+            </div>
             <h3 style={{ margin: '0 0 10px 0', fontSize: '18px' }}>{playlist.name}</h3>
             <p style={{ margin: '0 0 20px 0', color: '#666', fontSize: '14px', flex: 1 }}>{playlist.description}</p>
             
@@ -64,7 +82,7 @@ export default function MoodPlaylist({ data }) {
               className="playlist-link"
               style={{
                 display: 'inline-block',
-                background: '#1DB954',
+                background: '#5b8def',
                 color: '#fff',
                 textDecoration: 'none',
                 padding: '10px 15px',
@@ -72,7 +90,8 @@ export default function MoodPlaylist({ data }) {
                 textAlign: 'center',
                 fontWeight: 'bold',
                 fontSize: '14px',
-                transition: 'opacity 0.2s'
+                transition: 'all 0.2s ease',
+                boxShadow: '0 6px 14px rgba(91, 141, 239, 0.20)'
               }}
             >
               Listen Now

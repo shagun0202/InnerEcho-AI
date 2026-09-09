@@ -1758,6 +1758,11 @@ export default function MoodStudio() {
           )}
           
           <div className="camera-placeholder">
+          <img
+            src="/images/mood-camera.png"
+            alt="Mood Studio"
+            className="mood-camera-illustration"
+          />
             <span>{cameraState === 'loading' ? '◌' : '✦'}</span>
             <h2>
               {cameraState === 'idle' ? 'A moment for you.' : 

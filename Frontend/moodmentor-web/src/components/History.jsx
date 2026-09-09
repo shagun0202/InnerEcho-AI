@@ -11,7 +11,7 @@ export default function History({ entries }) {
           </article>
         ))
       ) : (
-        <article className="panel">
+        <article className="panel history-empty-panel">
           <Empty text="No reflections yet. Your story can begin whenever you are ready." />
         </article>
       )}

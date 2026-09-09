@@ -140,15 +140,14 @@ export default function App() {
     setError('')
     setBusy(true)
     try {
-      const entry = await request('/journal/entries', {
+      const entry = await request('/journal', {
         method: 'POST',
         token,
-        body: { content: journal, entry_type: 'freeform' },
-      })
+        body: { text: journal },
+  })
 
       setJournal('')
-      const fullAnalysis = await request(`/analytics/journal/${entry.id}`, { token })
-      setAnalysis(fullAnalysis)
+      setAnalysis(entry)
 
       // Evaluate safety for distress indicators
       try {
@@ -175,21 +174,23 @@ export default function App() {
   async function sendChat(event) {
     event.preventDefault()
     if (!chatText.trim() || busy) return
-    const userMsg = { role: 'user', content: chatText }
+    const userMsg = { role: 'user', text: chatText }
     setChat(prev => [...prev, userMsg])
     setChatText('')
     setBusy(true)
     setError('')
     try {
-      const response = await request('/chat/messages', {
-        method: 'POST',
-        token,
-        body: { message: userMsg.content },
-      })
-      const assistantMsg = {
-        role: 'assistant',
-        content: response.content || response.response || response.message,
-      }
+     const response = await request('/chat', {
+       method: 'POST',
+       token,
+       body: { text: userMsg.text },
+    })
+    console.log('CHAT RESPONSE:', response)
+
+    const assistantMsg = {
+       role: 'assistant',
+       content: response.reply.text,
+}
       setChat(prev => [...prev, assistantMsg])
 
       // Evaluate safety for chat message
@@ -197,7 +198,7 @@ export default function App() {
         const safetyResult = await request('/safety/evaluate', {
           method: 'POST',
           token,
-          body: { text: userMsg.content, source: 'chat' },
+         body: { text: userMsg.text, source: 'chat' },
         })
         if (safetyResult && (safetyResult.risk_level === 'high' || safetyResult.risk_level === 'critical')) {
           setSafetyAlertData(safetyResult)

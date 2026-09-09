@@ -9,40 +9,47 @@
   --font-serif: 'Fraunces', Georgia, serif;
   
   /* Colors - Light */
-  --bg-primary: #f6f7fb;
-  --bg-card: #ffffff;
-  --bg-card-hover: #fafafe;
-  --bg-input: #ffffff;
-  --bg-code: #f4f2ff;
-  --text-primary: #20243a;
-  --text-secondary: #787e91;
-  --text-muted: #969aac;
-  --accent: #6956e8;
-  --accent-hover: #5a45d4;
-  --accent-light: #f0eeff;
-  --accent-text: #5642c4;
-  --border: #ececf4;
-  --border-input: #e5e5ee;
-  --shadow-sm: 0 2px 8px rgba(0,0,0,.04);
-  --shadow-md: 0 8px 24px rgba(0,0,0,.06);
-  --shadow-lg: 0 20px 45px rgba(0,0,0,.08);
-  --success: #10b981;
-  --danger: #e56467;
-  --danger-bg: #fff0f1;
-  --sidebar-bg: #ffffff;
-  --sidebar-border: #ececf4;
-  --nav-active-bg: #f0eeff;
-  --nav-active-text: #5642c8;
-  --nav-text: #73788d;
-  --stat-value: #5d4bd7;
-  --meter-bg: #f0f0f5;
-  --meter-fill: linear-gradient(90deg, #8d7ef3, #6552d9);
-  --avatar-bg: #e7e2ff;
-  --avatar-text: #5642c4;
-  --welcome-gradient: linear-gradient(120deg, #5949d8, #7d69e9);
-  --chat-user-bg: #6956e8;
-  --chat-assistant-bg: #f2f1f8;
-  --chat-assistant-text: #4f5366;
+ --bg-primary: #f4f8fc;
+--bg-card: #ffffff;
+--bg-card-hover: #f8fbff;
+--bg-input: #ffffff;
+--bg-code: #eef6ff;
+
+--text-primary: #243447;
+--text-secondary: #64748b;
+--text-muted: #94a3b8;
+
+--accent: #5b8def;
+--accent-hover: #4a7de0;
+--accent-light: #dcebfa;
+--accent-text: #3f6fc7;
+
+--border: #e3edf7;
+--border-input: #d8e5f2;
+
+--success: #10b981;
+--danger: #e56467;
+--danger-bg: #fff0f1;
+
+--sidebar-bg: #243447;
+--sidebar-border: #243447;
+--nav-active-bg: #5b8def;
+--nav-active-text: #ffffff;
+--nav-text: #ffffff;
+
+--stat-value: #356fc9;
+
+--meter-bg: #e8f0f8;
+--meter-fill: linear-gradient(90deg, #7ba7f5, #5b8def);
+
+--avatar-bg: #dcebfa;
+--avatar-text: #3569b8;
+
+--welcome-gradient: linear-gradient(120deg, #4f82df, #6fa3f5);
+
+--chat-user-bg: #5b8def;
+--chat-assistant-bg: #eef5fc;
+--chat-assistant-text: #475569;
 }
 
 [data-theme="dark"] {
@@ -5048,5 +5055,1084 @@ header {
 .memory-viewer-close:hover {
   color: var(--text-primary);
 }
+/* =========================================================
+   INNER ECHO - VISUAL ENHANCEMENT
+   UI ONLY - FUNCTIONALITY UNCHANGED
+   ========================================================= */
+
+/* Smooth overall appearance */
+* {
+  transition: background-color 0.25s ease,
+              border-color 0.25s ease,
+              box-shadow 0.25s ease,
+              transform 0.25s ease;
+}
+
+/* Main page background */
+body {
+  background:
+    radial-gradient(circle at 10% 10%, rgba(139, 92, 246, 0.08), transparent 30%),
+    radial-gradient(circle at 90% 20%, rgba(96, 165, 250, 0.08), transparent 30%),
+    #fafaff;
+}
+
+/* Main content subtle decoration */
+.main-content,
+.dashboard-content,
+.content-area {
+  position: relative;
+}
+
+/* Cards - premium glass effect */
+.card,
+.dashboard-card,
+.stat-card,
+.feature-card,
+.mood-card,
+.journal-card {
+  border: 1px solid rgba(139, 92, 246, 0.12);
+  border-radius: 20px;
+  box-shadow:
+    0 8px 25px rgba(70, 50, 120, 0.07),
+    0 2px 8px rgba(70, 50, 120, 0.04);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+/* Card hover */
+.card:hover,
+.dashboard-card:hover,
+.stat-card:hover,
+.feature-card:hover,
+.mood-card:hover,
+.journal-card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 14px 35px rgba(90, 60, 150, 0.12),
+    0 4px 12px rgba(90, 60, 150, 0.06);
+  border-color: rgba(139, 92, 246, 0.22);
+}
+
+/* Buttons */
+button {
+  border-radius: 12px;
+  transition: all 0.25s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(99, 72, 170, 0.16);
+}
+
+/* Inputs and text areas */
+input,
+textarea,
+select {
+  border-radius: 12px;
+  border: 1px solid rgba(120, 100, 160, 0.18);
+  transition: all 0.25s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: rgba(139, 92, 246, 0.55);
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.08);
+  outline: none;
+}
+
+/* Sidebar polish */
+.sidebar {
+  box-shadow: 4px 0 25px rgba(60, 40, 100, 0.06);
+  border-right: 1px solid rgba(139, 92, 246, 0.10);
+}
+
+/* Sidebar items */
+.sidebar a,
+.sidebar button {
+  border-radius: 12px;
+}
+
+/* Smooth active/hover feeling */
+.sidebar a:hover,
+.sidebar button:hover {
+  background: rgba(139, 92, 246, 0.08);
+}
+
+/* Headings */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.3px;
+}
+
+/* Small decorative glow */
+.dashboard-header,
+.page-header {
+  position: relative;
+}
+
+.dashboard-header::after,
+.page-header::after {
+  content: "";
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.08);
+  filter: blur(25px);
+  right: 5%;
+  top: 10%;
+  pointer-events: none;
+}
+
+/* Mood / emotion elements */
+.mood-option,
+.emotion-card,
+.mood-item {
+  border-radius: 16px;
+  transition: all 0.25s ease;
+}
+
+.mood-option:hover,
+.emotion-card:hover,
+.mood-item:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 10px 25px rgba(100, 70, 160, 0.10);
+}
+
+/* Journal writing area */
+.journal-entry,
+.journal-editor {
+  border-radius: 18px;
+  box-shadow: inset 0 1px 3px rgba(80, 60, 120, 0.03);
+}
+
+/* Gentle page animation */
+main,
+.main-content {
+  animation: innerEchoFade 0.45s ease;
+}
+
+@keyframes innerEchoFade {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Image / illustration polish */
+img {
+  border-radius: 14px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: rgba(120, 90, 180, 0.25);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Mobile polish */
+@media (max-width: 768px) {
+  .card,
+  .dashboard-card,
+  .stat-card,
+  .feature-card,
+  .mood-card,
+  .journal-card {
+    border-radius: 16px;
+  }
+}
+.welcome {
+  width: 100%;
+  min-height: 270px;
+  padding: 45px 40px;
+  box-sizing: border-box;
+}
+
+.welcome-mood {
+  width: 340px;
+  min-width: 340px;
+}
+
+.employee-hero {
+  width: 330px;
+  height: 250px;
+}
+.mood-preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.preview-label {
+  position: absolute;
+  top: -8px;
+  left: 8px;
+  font-size: 11px;
+  color: #8b7ed8;
+  background: rgba(117, 102, 238, 0.08);
+  padding: 5px 10px;
+  border-radius: 20px;
+  z-index: 2;
+}
+/* Fix empty Emotion Mix layout */
+
+.emotion-list > div.empty {
+  display: block !important;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  padding: 28px 20px;
+  border-radius: 20px;
+  background: linear-gradient(
+    135deg,
+    rgba(117, 102, 238, 0.06),
+    rgba(167, 151, 246, 0.10)
+  );
+  border: 1px solid rgba(117, 102, 238, 0.10);
+}
+
+.emotion-list > div.empty::before {
+  content: "💜";
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: rgba(117, 102, 238, 0.12);
+  font-size: 25px;
+}
+
+.emotion-list > div.empty p {
+  margin: 0 auto;
+  max-width: 280px;
+  color: #77739a;
+  font-size: 13px;
+  line-height: 1.6;
+}
+/* Hide default Empty component icon inside Emotion Mix */
+.emotion-list > div.empty > span {
+  display: none !important;
+}
+/* Recent Reflections - visible empty state */
+
+.recent .empty {
+  min-height: 150px !important;
+  margin-top: 18px !important;
+  padding: 30px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  border-radius: 20px !important;
+  background: linear-gradient(135deg, #f8f6ff, #f1edff) !important;
+  border: 1px solid #e5dfff !important;
+  box-shadow: 0 8px 24px rgba(90, 70, 160, 0.06) !important;
+}
+
+.recent .empty::before {
+  content: "✦" !important;
+  display: block !important;
+  margin-bottom: 12px !important;
+  font-size: 28px !important;
+}
+
+.recent .empty p {
+  margin: 0 !important;
+  color: #716b91 !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
+.recent .empty {
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.recent .empty::before {
+  content: "✦" !important;
+  display: block !important;
+  font-size: 28px !important;
+  margin: 0 0 4px 0 !important;
+}
+
+.recent .empty > span {
+  display: none !important;
+}
+/* ===== BLUE THEME - STAT CARDS ===== */
+
+.stats {
+  gap: 18px;
+}
+
+.stat {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e3edf7;
+  background: linear-gradient(145deg, #ffffff, #f7fbff);
+  box-shadow: 0 8px 24px rgba(54, 105, 184, 0.06);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.stat:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 30px rgba(54, 105, 184, 0.12);
+}
+
+/* Soft decorative circle */
+.stat::after {
+  content: "";
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  right: -28px;
+  top: -28px;
+  border-radius: 50%;
+  background: rgba(91, 141, 239, 0.08);
+  pointer-events: none;
+}
+
+/* Stat value */
+.stat strong {
+  position: relative;
+  z-index: 1;
+  color: #356fc9;
+}
+
+/* Stat label */
+.stat span {
+  position: relative;
+  z-index: 1;
+}
+
+/* Stat detail */
+.stat small {
+  position: relative;
+  z-index: 1;
+  color: #64748b;
+}
+/* ===== MOOD RHYTHM - BLUE CHART ===== */
+
+.chart-panel {
+  background: linear-gradient(145deg, #ffffff, #f8fbff);
+  border: 1px solid #e3edf7;
+  box-shadow: 0 8px 24px rgba(54, 105, 184, 0.06);
+}
+
+.chart-panel .badge {
+  background: #dcebfa;
+  color: #356fc9;
+  border: 1px solid #cfe2f5;
+}
+
+.chart {
+  border-radius: 18px;
+  padding: 10px 5px 5px;
+  background: linear-gradient(
+    180deg,
+    rgba(220, 235, 250, 0.35),
+    rgba(255, 255, 255, 0)
+  );
+}
+
+/* Preview label */
+.preview-label {
+  color: #356fc9;
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+/* ===== EMOTIONAL MIX - BLUE THEME ===== */
+
+.emotion-list {
+  gap: 14px;
+}
+
+.emotion-list > div:not(.empty) {
+  padding: 11px 12px;
+  border-radius: 14px;
+  transition: all 0.25s ease;
+}
+
+.emotion-list > div:not(.empty):hover {
+  background: rgba(91, 141, 239, 0.06);
+  transform: translateX(3px);
+}
+
+.emotion-list > div:not(.empty) > span {
+  color: #243447;
+  font-weight: 600;
+}
+
+.emotion-list .meter {
+  height: 9px;
+  background: #e8f0f8;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.emotion-list .meter i {
+  background: linear-gradient(90deg, #7ba7f5, #5b8def);
+  border-radius: 20px;
+  transition: width 0.8s ease;
+}
+
+.emotion-list > div:not(.empty) > b {
+  color: #356fc9;
+  font-weight: 700;
+}
+/* ===== WELCOME HERO - BLUE THEME ===== */
+
+.welcome {
+  background: linear-gradient(120deg, #4f82df, #6fa3f5);
+  box-shadow: 0 14px 35px rgba(54, 105, 184, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.welcome .eyebrow {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.welcome h2 {
+  color: #ffffff;
+}
+
+.welcome p:not(.eyebrow) {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.welcome .primary {
+  background: #ffffff;
+  color: #356fc9;
+  box-shadow: 0 6px 18px rgba(36, 52, 71, 0.12);
+}
+
+.welcome .primary:hover {
+  background: #f4f8fc;
+  transform: translateY(-2px);
+}
+
+.welcome-mood {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  backdrop-filter: blur(8px);
+}
+
+.welcome-mood-text b {
+  color: #ffffff;
+}
+/* ===== SIDEBAR PROFILE ALIGNMENT ===== */
+
+.sidebar .user-profile {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  box-sizing: border-box;
+  margin-bottom: 20px !important;
+}
+
+.sidebar .user-profile .avatar {
+  flex: 0 0 46px !important;
+  width: 46px !important;
+  height: 46px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.sidebar .user-profile > div:not(.avatar) {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 3px !important;
+}
+
+.sidebar .user-profile b {
+  color: #ffffff !important;
+  font-size: 14px !important;
+  line-height: 1.2 !important;
+}
+
+.sidebar .user-profile small {
+  color: #dcebfa !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+}
+/* ===== SIDEBAR FINAL POLISH ===== */
+
+.sidebar {
+  background: #243447 !important;
+}
+
+.sidebar .user-profile {
+  margin-bottom: 22px !important;
+}
+
+.sidebar nav {
+  gap: 6px !important;
+}
+
+.sidebar nav a {
+  min-height: 42px !important;
+  padding: 10px 14px !important;
+  border-radius: 12px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+}
+
+.sidebar nav a.active {
+  background: #5b8def !important;
+  color: #ffffff !important;
+  box-shadow: 0 5px 14px rgba(91, 141, 239, 0.22);
+}
+
+.sidebar nav a:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+}
+
+.sidebar .user-profile b {
+  color: #ffffff !important;
+}
+
+.sidebar .user-profile small {
+  color: #dcebfa !important;
+}
+
+.sidebar .avatar {
+  background: #dcebfa !important;
+  color: #356fc9 !important;
+}
+/* ===== SIGN OUT FINAL ===== */
+
+.sidebar .logout {
+  display: block !important;
+  width: calc(100% - 20px) !important;
+  margin: 18px 10px 20px !important;
+  padding: 11px 14px !important;
+
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 10px !important;
+
+  color: #ff8b8b !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-align: left !important;
+
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.sidebar .logout:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+}
+/* ===== EMPTY STATES - BLUE THEME ===== */
+
+.emotion-list > div.empty {
+  background: linear-gradient(
+    135deg,
+    #f4f8fc,
+    #eaf3fc
+  ) !important;
+  border: 1px solid #dcebfa !important;
+}
+
+.emotion-list > div.empty::before {
+  background: #dcebfa !important;
+}
+
+.recent .empty {
+  background: linear-gradient(
+    135deg,
+    #f4f8fc,
+    #eaf3fc
+  ) !important;
+  border: 1px dashed #cfe2f5 !important;
+}
+
+.recent .empty::before {
+  color: #5b8def !important;
+}
+
+.emotion-list > div.empty p,
+.recent .empty p {
+  color: #64748b !important;
+}
+/* ===== HERO FINAL POLISH ===== */
+
+/* Softer blue hero */
+.welcome {
+  background: linear-gradient(120deg, #5b8def, #78a8f5) !important;
+}
+
+/* Replace green leaf with a clean blue-theme sparkle */
+.welcome-mood-text > span {
+  font-size: 0 !important;
+}
+
+.welcome-mood-text > span::before {
+  content: "✦";
+  font-size: 25px;
+  color: #ffffff;
+}
+/* ===== HERO CALM MESSAGE ALIGNMENT ===== */
+
+.welcome-mood-text {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  gap: 8px !important;
+  box-sizing: border-box;
+}
+
+.welcome-mood-text > span {
+  flex-shrink: 0;
+}
+
+.welcome-mood-text b {
+  text-align: center !important;
+}
+/* =========================================================
+   JOURNAL PAGE - CLEAR LIGHT BLUE DESIGN
+   ========================================================= */
+
+.journal-layout .write-panel {
+  background: #f3f8ff !important;
+  border: 2px solid #cfe2f5 !important;
+  border-radius: 22px !important;
+  box-shadow: 0 12px 32px rgba(36, 52, 71, 0.08) !important;
+}
+
+/* Journal section label */
+.journal-layout .write-panel .eyebrow {
+  color: #4f82df !important;
+}
+
+/* Main journal heading */
+.journal-layout .write-panel h2 {
+  color: #243447 !important;
+  font-size: 30px !important;
+}
+
+/* Description */
+.journal-layout .write-panel .muted {
+  color: #64748b !important;
+}
+
+/* Text area */
+.journal-layout .write-panel textarea {
+  background: #ffffff !important;
+  border: 2px solid #cfe2f5 !important;
+  border-radius: 17px !important;
+  color: #243447 !important;
+}
+
+/* Textarea focus */
+.journal-layout .write-panel textarea:focus {
+  border-color: #5b8def !important;
+  box-shadow: 0 0 0 4px rgba(91, 141, 239, 0.14) !important;
+}
+
+/* Reflection / Gratitude buttons */
+.journal-layout .mode-btn.active {
+  background: #5b8def !important;
+  border-color: #5b8def !important;
+  color: #ffffff !important;
+}
+
+.journal-layout .mode-btn:not(.active) {
+  background: #eaf3fc !important;
+  border-color: #cfe2f5 !important;
+  color: #35516f !important;
+}
+
+/* Submit button */
+.journal-layout .form-footer .primary {
+  background: #5b8def !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.journal-layout .form-footer .primary:hover {
+  background: #3f76d2 !important;
+}
+/* =========================================================
+   JOURNAL EMPTY RESULT - LIGHT BLUE LANDSCAPE
+   ========================================================= */
+
+.journal-empty-state {
+  width: 100%;
+  min-height: 470px;
+  box-sizing: border-box;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #eef6ff, #e4f0fc);
+  border: 1px solid #c9e0f7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+/* soft decorative circles */
+.journal-empty-state::before {
+  content: "";
+  position: absolute;
+  width: 230px;
+  height: 230px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  top: -100px;
+  left: -80px;
+}
+
+.journal-empty-state::after {
+  content: "";
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+  bottom: -100px;
+  right: -70px;
+}
+
+/* landscape illustration */
+.journal-landscape {
+  width: 280px;
+  height: 170px;
+  position: relative;
+  margin-bottom: 25px;
+}
+
+/* sun */
+.landscape-sun {
+  position: absolute;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  background: #ffffff;
+  opacity: 0.85;
+  top: 15px;
+  left: 110px;
+}
+
+/* mountains */
+.landscape-mountain {
+  position: absolute;
+  bottom: 25px;
+  width: 0;
+  height: 0;
+  border-left: 85px solid transparent;
+  border-right: 85px solid transparent;
+  border-bottom: 105px solid #a9cef2;
+}
+
+.mountain-back {
+  left: 15px;
+  opacity: 0.7;
+}
+
+.mountain-front {
+  right: 5px;
+  border-bottom-color: #83b7e8;
+}
+
+/* little leaves */
+.landscape-leaf {
+  position: absolute;
+  width: 35px;
+  height: 70px;
+  border-radius: 100% 0 100% 0;
+  background: #78aee4;
+  bottom: 20px;
+}
+
+.leaf-left {
+  left: 35px;
+  transform: rotate(-25deg);
+}
+
+.leaf-right {
+  right: 35px;
+  transform: rotate(25deg) scaleX(-1);
+}
+
+/* message */
+.journal-empty-state p {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  text-align: center;
+  color: #54749a;
+  font-size: 15px;
+  line-height: 1.7;
+  font-weight: 500;
+}
+.mood-camera-illustration {
+  width: 400px;
+  height: 400px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 20px;
+  transform: translateY(30px);
+
+}
+.camera-placeholder {
+  transform: translateY(-50px);
+}
+.talk-mic-illustration {
+  width: 280px;
+  height: 340px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 10px;
+}
+.chat-welcome {
+  position: relative;
+  background: linear-gradient(135deg, #f3f8ff, #eaf3fc) !important;
+  border: 1px solid #cfe2f5 !important;
+  border-radius: 24px !important;
+  padding: 35px !important;
+  box-shadow: 0 12px 30px rgba(36, 52, 71, 0.08) !important;
+}
+.chat-welcome h2 {
+  color: #243447 !important;
+  font-size: 30px !important;
+  margin-bottom: 10px !important;
+}
+
+.chat-welcome p {
+  color: #64748b !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
+
+.chat-welcome .voice-hint-badge {
+  background: #ffffff !important;
+  border: 1px solid #cfe2f5 !important;
+  color: #4f6f91 !important;
+  border-radius: 14px !important;
+  padding: 10px 14px !important;
+}
+/* ===== TALK WITH ME - CHAT FORM ===== */
+
+.chat-form {
+  background: #f8fbff !important;
+  border: 1px solid #cfe2f5 !important;
+  border-radius: 20px !important;
+  padding: 12px !important;
+  box-shadow: 0 8px 24px rgba(36, 52, 71, 0.08) !important;
+}
+
+.chat-form input {
+  background: #ffffff !important;
+  border: 1px solid #d5e7f7 !important;
+  border-radius: 14px !important;
+  color: #243447 !important;
+  padding: 13px 16px !important;
+}
+
+.chat-form input:focus {
+  border-color: #5b8def !important;
+  box-shadow: 0 0 0 3px rgba(91, 141, 239, 0.12) !important;
+  outline: none !important;
+}
+
+.chat-form .mic-btn {
+  background: #eaf3fc !important;
+  border: 1px solid #cfe2f5 !important;
+  color: #35516f !important;
+  border-radius: 12px !important;
+}
+
+.chat-form .mic-btn:hover {
+  background: #dcebfa !important;
+}
+
+.chat-form .primary {
+  background: #5b8def !important;
+  border: none !important;
+  color: #ffffff !important;
+  border-radius: 12px !important;
+}
+/* ===== MEDITATION HEADER IMAGE ===== */
+
+.meditation-header-image {
+  width: 280px;
+  height: 280px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 12px;
+}
+.playlist-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+}
+
+.playlist-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 32px rgba(36, 52, 71, 0.12) !important;
+}
+
+.playlist-link {
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.playlist-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(91, 141, 239, 0.25);
+  opacity: 1 !important;
+}
+/* Mood Playlist illustration */
+.playlist-page {
+  position: relative;
+  
+}
+.playlist-background-illustration {
+  position: fixed !important;
+  right: -70px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+
+  width: 520px !important;
+  height: 520px !important;
+  object-fit: contain;
+
+  opacity: 0.40;
+  pointer-events: none;
+  z-index: 0;
+}
+.playlist-page > *:not(.playlist-background-illustration) {
+  position: relative;
+  z-index: 1;
+}
+/* History empty state */
+.history-empty-panel {
+  min-height: 360px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 24px !important;
+  background: #ffffff !important;
+}
+
+.history-empty-panel .empty {
+  width: 100%;
+  max-width: 500px;
+  min-height: 230px;
+  box-sizing: border-box;
+  padding: 40px 30px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  border-radius: 22px !important;
+  background: linear-gradient(135deg, #f4f8fc, #eaf3fc) !important;
+  border: 1px solid #dcebfa !important;
+}
+
+.history-empty-panel .empty > span {
+  display: none !important;
+}
+
+.history-empty-panel .empty::before {
+  content: "▤" !important;
+  width: 64px;
+  height: 64px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  border-radius: 50%;
+  background: #dcebfa;
+  color: #5b8def;
+  font-size: 30px;
+  font-weight: 600;
+}
+
+.history-empty-panel .empty p {
+  margin: 0 !important;
+  max-width: 360px;
+  color: #64748b !important;
+  font-size: 14px;
+  line-height: 1.7;
+}
+/* Talk With Me - visual polish */
+.chat-panel {
+  border-radius: 24px !important;
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(36, 52, 71, 0.08) !important;
+}
+
+.message {
+  border-radius: 18px !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.message:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(36, 52, 71, 0.06);
+}
+
+.message.user {
+  background: #5b8def !important;
+  color: #ffffff !important;
+}
+
+.message.assistant {
+  background: #f3f8ff !important;
+  border: 1px solid #dcebfa !important;
+  color: #243447 !important;
+}
+
+.tts-btn {
+  border-radius: 10px !important;
+  transition: all 0.2s ease;
+}
+
+.tts-btn:hover {
+  transform: scale(1.04);
+}
+.sidebar .brand > span:first-child {
+  display: none !important;
+}
 
 
+.sidebar nav button {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  padding: 11px 14px !important;
+}
+
+.sidebar nav button > span {
+  font-size: 17px !important;
+  min-width: 22px;
+}
+.user-profile > div:last-child > b {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  line-height: 1.3 !important;
+}

@@ -1141,7 +1141,11 @@ export default function GuidedMeditation({ data }) {
       <div className="med-home">
         {/* Header */}
         <div className="med-header">
-          <span className="med-header-icon">🧘</span>
+          <img
+            src="/images/Meditation.png"
+            alt="Guided Meditation"
+            className="meditation-header-image"
+          />
           <h2>Guided Meditation</h2>
           <p>A few minutes to reset your mind, body, and attention.</p>
           

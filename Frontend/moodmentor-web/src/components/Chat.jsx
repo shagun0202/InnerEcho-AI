@@ -138,6 +138,11 @@ export default function Chat({ chat, chatText, setChatText, sendChat, busy }) {
           ))
         ) : (
           <div className="chat-welcome">
+            <img
+             src="/images/talk-mic.png"
+             alt="Talk With Me"
+             className="talk-mic-illustration"
+            />
             <span className="welcome-avatar">🎙️</span>
             <h2>Talk With Me</h2>
             <p>Speak or write anything that is on your mind. I am here to listen without judgment.</p>
