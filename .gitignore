@@ -1,0 +1,38 @@
+# Environment variables
+.venv/
+.pytest_cache/
+playwright-report/
+test-results/
+*.log
+
+# Virtual environments
+venv/
+Backend/venv/
+
+# Python cache
+__pycache__/
+Backend/**/__pycache__/
+*.pyc
+
+# Database
+*.db
+Backend/moodmentor.db
+
+# VS Code
+.vscode/
+
+Frontend/moodmentor-web/dist/
+
+# Frontend dependencies and Vite cache
+node_modules/
+Frontend/moodmentor-web/node_modules/
+*.vite
+
+# Environment variables
+Backend/.env
+.env
+.env.*
+!.env.example
+
+pytest-cache-files-*/
+backups/
